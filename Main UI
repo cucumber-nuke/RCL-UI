@@ -47,7 +47,6 @@ Library.Settings = {
     }
 }
 
--- 파티클 효과 생성 함수
 local function CreateParticles(parent, position)
     local particles = {}
     for i = 1, 30 do
@@ -73,6 +72,7 @@ function Library:CreateWindow(title)
     Window.Toggles = {}
     Window.Tasks = {}
     Window.NotificationsEnabled = true
+    Window.NotificationList = {}
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
@@ -93,7 +93,6 @@ function Library:CreateWindow(title)
     Corner.CornerRadius = UDim.new(0, 6)
     Corner.Parent = MainFrame
     
-    -- 타이틀바
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = MainFrame
@@ -115,7 +114,6 @@ function Library:CreateWindow(title)
     TitleText.TextSize = 14
     TitleText.TextXAlignment = Enum.TextXAlignment.Left
     
-    -- 최소화 버튼
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Parent = TitleBar
     MinimizeButton.BackgroundTransparency = 1
@@ -126,7 +124,6 @@ function Library:CreateWindow(title)
     MinimizeButton.TextColor3 = Library.Settings.TextColor
     MinimizeButton.TextSize = 20
     
-    -- 닫기 버튼
     local CloseButton = Instance.new("TextButton")
     CloseButton.Parent = TitleBar
     CloseButton.BackgroundTransparency = 1
@@ -137,7 +134,6 @@ function Library:CreateWindow(title)
     CloseButton.TextColor3 = Library.Settings.TextColor
     CloseButton.TextSize = 14
     
-    -- 탭 컨테이너
     local TabContainer = Instance.new("Frame")
     TabContainer.Name = "TabContainer"
     TabContainer.Parent = MainFrame
@@ -163,7 +159,6 @@ function Library:CreateWindow(title)
     TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabListLayout.Padding = UDim.new(0, 5)
     
-    -- 콘텐츠 프레임
     local ContentFrame = Instance.new("Frame")
     ContentFrame.Name = "ContentFrame"
     ContentFrame.Parent = MainFrame
@@ -175,7 +170,6 @@ function Library:CreateWindow(title)
     ContentCorner.CornerRadius = UDim.new(0, 6)
     ContentCorner.Parent = ContentFrame
     
-    -- 드래그 기능
     local dragging
     local dragInput
     local dragStart
@@ -208,7 +202,6 @@ function Library:CreateWindow(title)
         end
     end)
     
-    -- 최소화 애니메이션
     MinimizeButton.MouseButton1Click:Connect(function()
         local minimized = MainFrame.Size.Y.Offset <= 30
         local originalSize = UDim2.new(0, 600, 0, 400)
@@ -216,7 +209,6 @@ function Library:CreateWindow(title)
         local fullyMinimized = UDim2.new(0, 150, 0, 30)
         
         if minimized then
-            -- 펼치기
             TweenService:Create(MainFrame, 
                 TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
                 {Size = horizontalMinimized}
@@ -240,7 +232,6 @@ function Library:CreateWindow(title)
                 {BackgroundTransparency = 0}
             ):Play()
         else
-            -- 접기
             TweenService:Create(TabContainer, 
                 TweenInfo.new(0.2), 
                 {BackgroundTransparency = 1}
@@ -266,7 +257,6 @@ function Library:CreateWindow(title)
         end
     end)
     
-    -- 닫기 버튼 애니메이션
     CloseButton.MouseButton1Click:Connect(function()
         local particles = CreateParticles(MainFrame, UDim2.new(0.5, 0, 0.5, 0))
         for _, particle in ipairs(particles) do
@@ -318,7 +308,6 @@ function Library:CreateWindow(title)
         ScreenGui:Destroy()
     end)
     
-    -- 탭 생성 함수
     function Window:CreateTab(name)
         local Tab = {}
         
@@ -370,7 +359,6 @@ function Library:CreateWindow(title)
             TabPage.Visible = true
         end
         
-        -- 버튼 생성 함수
         function Tab:CreateButton(text, callback)
             local Button = Instance.new("TextButton")
             Button.Parent = TabPage
@@ -403,7 +391,6 @@ function Library:CreateWindow(title)
             return Button
         end
         
-        -- 토글 생성 함수
         function Tab:CreateToggle(text, callback)
             local Toggle = {}
             Toggle.Value = false
@@ -428,7 +415,6 @@ function Library:CreateWindow(title)
             return Toggle
         end
         
-        -- 드롭다운 생성 함수
         function Tab:CreateDropdown(text, options, callback)
             local Dropdown = {}
             Dropdown.Value = options[1]
@@ -446,12 +432,18 @@ function Library:CreateWindow(title)
             DropdownCorner.CornerRadius = UDim.new(0, 4)
             DropdownCorner.Parent = DropdownButton
             
+            local DropdownContainer = Instance.new("Frame")
+            DropdownContainer.Name = "DropdownContainer"
+            DropdownContainer.Parent = TabPage
+            DropdownContainer.BackgroundTransparency = 1
+            DropdownContainer.Size = UDim2.new(1, 0, 0, 0)
+            DropdownContainer.ClipsDescendants = true
+            
             local OptionsList = Instance.new("Frame")
-            OptionsList.Parent = DropdownButton
+            OptionsList.Parent = DropdownContainer
             OptionsList.BackgroundColor3 = Library.Settings.ButtonColor
-            OptionsList.Position = UDim2.new(0, 0, 1, 5)
             OptionsList.Size = UDim2.new(1, 0, 0, #options * 25)
-            OptionsList.Visible = false
+            OptionsList.Position = UDim2.new(0, 0, 0, 0)
             OptionsList.ZIndex = 10
             
             local OptionsListCorner = Instance.new("UICorner")
@@ -470,16 +462,42 @@ function Library:CreateWindow(title)
                 OptionButton.TextSize = Library.Settings.TextSize
                 OptionButton.ZIndex = 10
                 
+                local OptionCorner = Instance.new("UICorner")
+                OptionCorner.CornerRadius = UDim.new(0, 4)
+                OptionCorner.Parent = OptionButton
+                
+                OptionButton.MouseEnter:Connect(function()
+                    TweenService:Create(OptionButton, TweenInfo.new(0.3), {
+                        BackgroundColor3 = Library.Settings.ButtonHoverColor
+                    }):Play()
+                end)
+                
+                OptionButton.MouseLeave:Connect(function()
+                    TweenService:Create(OptionButton, TweenInfo.new(0.3), {
+                        BackgroundColor3 = Library.Settings.ButtonColor
+                    }):Play()
+                end)
+                
                 OptionButton.MouseButton1Click:Connect(function()
                     Dropdown.Value = option
                     DropdownButton.Text = text .. ": " .. option
-                    OptionsList.Visible = false
+                    
+                    TweenService:Create(DropdownContainer, TweenInfo.new(0.3), {
+                        Size = UDim2.new(1, 0, 0, 0)
+                    }):Play()
+                    
                     if callback then callback(option) end
                 end)
             end
             
+            local isOpen = false
+            
             DropdownButton.MouseButton1Click:Connect(function()
-                OptionsList.Visible = not OptionsList.Visible
+                isOpen = not isOpen
+                
+                TweenService:Create(DropdownContainer, TweenInfo.new(0.3), {
+                    Size = UDim2.new(1, 0, 0, isOpen and (#options * 25) or 0)
+                }):Play()
             end)
             
             return Dropdown
@@ -488,7 +506,6 @@ function Library:CreateWindow(title)
         return Tab
     end
     
-    -- 알림 생성 함수
     function Window:CreateNotification(title, text, duration)
         if not Window.NotificationsEnabled then return end
         
@@ -498,6 +515,7 @@ function Library:CreateWindow(title)
         Notification.BackgroundColor3 = Library.Settings.MainColor
         Notification.Position = UDim2.new(1, -250, 1, -70)
         Notification.Size = UDim2.new(0, 230, 0, 60)
+        Notification.ZIndex = 100
         
         local NotifCorner = Instance.new("UICorner")
         NotifCorner.CornerRadius = UDim.new(0, 4)
@@ -512,6 +530,7 @@ function Library:CreateWindow(title)
         NotifTitle.Text = title
         NotifTitle.TextColor3 = Library.Settings.AccentColor
         NotifTitle.TextSize = 14
+        NotifTitle.ZIndex = 101
         
         local NotifText = Instance.new("TextLabel")
         NotifText.Parent = Notification
@@ -522,24 +541,50 @@ function Library:CreateWindow(title)
         NotifText.Text = text
         NotifText.TextColor3 = Library.Settings.TextColor
         NotifText.TextSize = 12
+        NotifText.ZIndex = 101
+        
+        local offset = 0
+        for i, notif in ipairs(Window.NotificationList) do
+            if notif and notif.Parent then
+                offset = offset + 70
+            end
+        end
+        
+        table.insert(Window.NotificationList, Notification)
         
         TweenService:Create(Notification, 
             TweenInfo.new(0.5, Enum.EasingStyle.Quart), 
-            {Position = UDim2.new(1, -260, 1, -70)}
+            {Position = UDim2.new(1, -260, 1, -70 - offset)}
         ):Play()
         
-        wait(duration)
-        
-        TweenService:Create(Notification, 
-            TweenInfo.new(0.5, Enum.EasingStyle.Quart), 
-            {Position = UDim2.new(1, 0, 1, -70)}
-        ):Play()
-        
-        wait(0.5)
-        Notification:Destroy()
+        task.spawn(function()
+            wait(duration)
+            
+            local notifIndex = table.find(Window.NotificationList, Notification)
+            if notifIndex then
+                table.remove(Window.NotificationList, notifIndex)
+                
+                for i = notifIndex, #Window.NotificationList do
+                    local notif = Window.NotificationList[i]
+                    if notif and notif.Parent then
+                        TweenService:Create(notif,
+                            TweenInfo.new(0.5, Enum.EasingStyle.Quart),
+                            {Position = UDim2.new(1, -260, 1, -70 - (70 * (i-1)))}
+                        ):Play()
+                    end
+                end
+            end
+            
+            TweenService:Create(Notification, 
+                TweenInfo.new(0.5, Enum.EasingStyle.Quart), 
+                {Position = UDim2.new(1, 0, Notification.Position.Y.Scale, Notification.Position.Y.Offset)}
+            ):Play()
+            
+            wait(0.5)
+            Notification:Destroy()
+        end)
     end
     
-    -- User Info 패널 생성
     function Window:CreateUserInfo()
         local UserInfoPanel = Instance.new("Frame")
         UserInfoPanel.Name = "UserInfoPanel"
@@ -595,10 +640,8 @@ function Library:CreateWindow(title)
         return UserInfoPanel
     end
     
-    -- 테마 적용 함수
     function Window:ApplyTheme(theme)
         if theme.IsRainbow then
-            -- 무지개 색상 효과
             local function updateRainbow()
                 local hue = tick() % 5 / 5
                 local color = Color3.fromHSV(hue, 1, 1)
@@ -608,7 +651,6 @@ function Library:CreateWindow(title)
             RunService.RenderStepped:Connect(updateRainbow)
         else
             MainFrame.BackgroundColor3 = theme.MainColor
-            -- 다른 UI 요소들의 색상도 업데이트
         end
     end
     
