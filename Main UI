@@ -2,6 +2,7 @@ local Library = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 
 Library.Settings = {
     MainColor = Color3.fromRGB(25, 25, 25),
@@ -10,6 +11,8 @@ Library.Settings = {
     TextColor = Color3.fromRGB(255, 255, 255),
     ButtonColor = Color3.fromRGB(40, 40, 40),
     ButtonHoverColor = Color3.fromRGB(50, 50, 50),
+    TabColor = Color3.fromRGB(35, 35, 35),
+    TabSelectedColor = Color3.fromRGB(45, 45, 45),
     GlowColor = Color3.fromRGB(0, 170, 255),
     Font = Enum.Font.GothamBold,
     TextSize = 14,
@@ -17,27 +20,50 @@ Library.Settings = {
     AnimationDuration = 0.5
 }
 
+-- 파티클 효과 생성 함수
+local function CreateParticles(parent, position)
+    local particles = {}
+    for i = 1, 30 do
+        local particle = Instance.new("Frame")
+        particle.Size = UDim2.new(0, math.random(2, 5), 0, math.random(2, 5))
+        particle.BackgroundColor3 = Library.Settings.AccentColor
+        particle.Position = position
+        particle.BorderSizePixel = 0
+        particle.Parent = parent
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(1, 0)
+        corner.Parent = particle
+        
+        particles[i] = particle
+    end
+    return particles
+end
+
 function Library:CreateWindow(title)
     local Window = {}
+    Window.Tabs = {}
     Window.Toggles = {}
     Window.Tasks = {}
     
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Parent = game.CoreGui
     ScreenGui.Name = title
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Library.Settings.MainColor
-    MainFrame.Position = UDim2.new(0.5, -400, 0, 10) -- 상단에 위치
-    MainFrame.Size = UDim2.new(0, 800, 0, 60) -- 가로로 길게
+    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.ClipsDescendants = true
-
+    
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 6)
     Corner.Parent = MainFrame
     
+    -- 타이틀바
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = MainFrame
@@ -58,82 +84,192 @@ function Library:CreateWindow(title)
     TitleText.TextColor3 = Library.Settings.TextColor
     TitleText.TextSize = 14
     TitleText.TextXAlignment = Enum.TextXAlignment.Left
-
-    local ButtonsHolder = Instance.new("Frame")
-    ButtonsHolder.Name = "ButtonsHolder"
-    ButtonsHolder.Parent = MainFrame
-    ButtonsHolder.BackgroundTransparency = 1
-    ButtonsHolder.Position = UDim2.new(0, 10, 0, 35)
-    ButtonsHolder.Size = UDim2.new(1, -20, 0, 20)
     
-    local UIListLayout = Instance.new("UIListLayout")
-    UIListLayout.Parent = ButtonsHolder
-    UIListLayout.FillDirection = Enum.FillDirection.Horizontal
-    UIListLayout.Padding = UDim.new(0, 10)
-    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    -- 탭 컨테이너
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Name = "TabContainer"
+    TabContainer.Parent = MainFrame
+    TabContainer.BackgroundColor3 = Library.Settings.TabColor
+    TabContainer.Position = UDim2.new(0, 10, 0, 40)
+    TabContainer.Size = UDim2.new(0, 150, 1, -50)
     
-    function Window:CreateButton(text, callback)
-        local Button = Instance.new("TextButton")
-        Button.Parent = ButtonsHolder
-        Button.BackgroundColor3 = Library.Settings.ButtonColor
-        Button.Size = UDim2.new(0, 120, 0, 20)
-        Button.Font = Library.Settings.Font
-        Button.Text = text
-        Button.TextColor3 = Library.Settings.TextColor
-        Button.TextSize = Library.Settings.TextSize
-        Button.AutoButtonColor = false
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 6)
+    TabCorner.Parent = TabContainer
+    
+    local TabList = Instance.new("ScrollingFrame")
+    TabList.Name = "TabList"
+    TabList.Parent = TabContainer
+    TabList.BackgroundTransparency = 1
+    TabList.Position = UDim2.new(0, 5, 0, 5)
+    TabList.Size = UDim2.new(1, -10, 1, -10)
+    TabList.ScrollBarThickness = 2
+    TabList.ScrollBarImageColor3 = Library.Settings.AccentColor
+    
+    local TabListLayout = Instance.new("UIListLayout")
+    TabListLayout.Parent = TabList
+    TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabListLayout.Padding = UDim.new(0, 5)
+    
+    -- 콘텐츠 프레임
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "ContentFrame"
+    ContentFrame.Parent = MainFrame
+    ContentFrame.BackgroundColor3 = Library.Settings.BackgroundColor
+    ContentFrame.Position = UDim2.new(0, 170, 0, 40)
+    ContentFrame.Size = UDim2.new(1, -180, 1, -50)
+    
+    local ContentCorner = Instance.new("UICorner")
+    ContentCorner.CornerRadius = UDim.new(0, 6)
+    ContentCorner.Parent = ContentFrame
+    
+    -- 드래그 기능
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+    
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+        end
+    end)
+    
+    TitleBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    RunService.RenderStepped:Connect(function()
+        if dragging and dragInput then
+            local delta = dragInput.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    -- 탭 생성 함수
+    function Window:CreateTab(name)
+        local Tab = {}
         
-        local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(0, 4)
-        ButtonCorner.Parent = Button
+        local TabButton = Instance.new("TextButton")
+        TabButton.Name = name.."Tab"
+        TabButton.Parent = TabList
+        TabButton.BackgroundColor3 = Library.Settings.TabColor
+        TabButton.Size = UDim2.new(1, 0, 0, 30)
+        TabButton.Font = Library.Settings.Font
+        TabButton.Text = name
+        TabButton.TextColor3 = Library.Settings.TextColor
+        TabButton.TextSize = Library.Settings.TextSize
+        TabButton.AutoButtonColor = false
         
-        Button.MouseEnter:Connect(function()
-            TweenService:Create(Button, TweenInfo.new(0.3), {
-                BackgroundColor3 = Library.Settings.ButtonHoverColor
-            }):Play()
+        local TabButtonCorner = Instance.new("UICorner")
+        TabButtonCorner.CornerRadius = UDim.new(0, 4)
+        TabButtonCorner.Parent = TabButton
+        
+        local TabPage = Instance.new("ScrollingFrame")
+        TabPage.Name = name.."Page"
+        TabPage.Parent = ContentFrame
+        TabPage.BackgroundTransparency = 1
+        TabPage.Size = UDim2.new(1, -20, 1, -20)
+        TabPage.Position = UDim2.new(0, 10, 0, 10)
+        TabPage.ScrollBarThickness = 2
+        TabPage.ScrollBarImageColor3 = Library.Settings.AccentColor
+        TabPage.Visible = false
+        
+        local TabPageLayout = Instance.new("UIListLayout")
+        TabPageLayout.Parent = TabPage
+        TabPageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        TabPageLayout.Padding = UDim.new(0, 5)
+        
+        TabButton.MouseButton1Click:Connect(function()
+            for _, tab in pairs(Window.Tabs) do
+                tab.Button.BackgroundColor3 = Library.Settings.TabColor
+                tab.Page.Visible = false
+            end
+            TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
+            TabPage.Visible = true
         end)
         
-        Button.MouseLeave:Connect(function()
-            TweenService:Create(Button, TweenInfo.new(0.3), {
-                BackgroundColor3 = Library.Settings.ButtonColor
-            }):Play()
-        end)
+        Tab.Button = TabButton
+        Tab.Page = TabPage
+        table.insert(Window.Tabs, Tab)
         
-        Button.MouseButton1Click:Connect(function()
-            callback()
-        end)
+        if #Window.Tabs == 1 then
+            TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
+            TabPage.Visible = true
+        end
         
-        return Button
-    end
-    
-    function Window:CreateToggle(text, callback)
-        local Button = Window:CreateButton(text, function()
-            Button.Value = not Button.Value
-            if Button.Value then
+        -- 버튼 생성 함수
+        function Tab:CreateButton(text, callback)
+            local Button = Instance.new("TextButton")
+            Button.Parent = TabPage
+            Button.BackgroundColor3 = Library.Settings.ButtonColor
+            Button.Size = UDim2.new(1, 0, 0, 30)
+            Button.Font = Library.Settings.Font
+            Button.Text = text
+            Button.TextColor3 = Library.Settings.TextColor
+            Button.TextSize = Library.Settings.TextSize
+            Button.AutoButtonColor = false
+            
+            local ButtonCorner = Instance.new("UICorner")
+            ButtonCorner.CornerRadius = UDim.new(0, 4)
+            ButtonCorner.Parent = Button
+            
+            Button.MouseEnter:Connect(function()
                 TweenService:Create(Button, TweenInfo.new(0.3), {
-                    BackgroundColor3 = Library.Settings.AccentColor
+                    BackgroundColor3 = Library.Settings.ButtonHoverColor
                 }):Play()
-            else
+            end)
+            
+            Button.MouseLeave:Connect(function()
                 TweenService:Create(Button, TweenInfo.new(0.3), {
                     BackgroundColor3 = Library.Settings.ButtonColor
                 }):Play()
-            end
-            callback(Button.Value)
-        end)
-        Button.Value = false
-        return Button
+            end)
+            
+            Button.MouseButton1Click:Connect(callback)
+            
+            return Button
+        end
+        
+        -- 토글 생성 함수
+        function Tab:CreateToggle(text, callback)
+            local Toggle = {}
+            Toggle.Value = false
+            
+            local ToggleButton = Tab:CreateButton(text, function()
+                Toggle.Value = not Toggle.Value
+                if Toggle.Value then
+                    TweenService:Create(ToggleButton, TweenInfo.new(0.3), {
+                        BackgroundColor3 = Library.Settings.AccentColor
+                    }):Play()
+                else
+                    TweenService:Create(ToggleButton, TweenInfo.new(0.3), {
+                        BackgroundColor3 = Library.Settings.ButtonColor
+                    }):Play()
+                end
+                callback(Toggle.Value)
+            end)
+            
+            Toggle.Instance = ToggleButton
+            table.insert(Window.Toggles, Toggle)
+            
+            return Toggle
+        end
+        
+        return Tab
     end
-
-    local MinimizeButton = Instance.new("TextButton")
-    MinimizeButton.Parent = TitleBar
-    MinimizeButton.BackgroundTransparency = 1
-    MinimizeButton.Position = UDim2.new(1, -50, 0, 0)
-    MinimizeButton.Size = UDim2.new(0, 25, 1, 0)
-    MinimizeButton.Font = Library.Settings.Font
-    MinimizeButton.Text = "-"
-    MinimizeButton.TextColor3 = Library.Settings.TextColor
-    MinimizeButton.TextSize = 20
     
+    -- 닫기 버튼
     local CloseButton = Instance.new("TextButton")
     CloseButton.Parent = TitleBar
     CloseButton.BackgroundTransparency = 1
@@ -143,26 +279,47 @@ function Library:CreateWindow(title)
     CloseButton.Text = "X"
     CloseButton.TextColor3 = Library.Settings.TextColor
     CloseButton.TextSize = 14
-
-    MinimizeButton.MouseButton1Click:Connect(function()
-        local minimized = MainFrame.Size.Y.Offset <= 30
-        local targetSize = minimized and UDim2.new(0, 800, 0, 60) or UDim2.new(0, 800, 0, 30)
-        TweenService:Create(MainFrame, TweenInfo.new(0.5), {Size = targetSize}):Play()
-    end)
     
     CloseButton.MouseButton1Click:Connect(function()
+        -- 파티클 효과
+        local particles = CreateParticles(MainFrame, UDim2.new(0.5, 0, 0.5, 0))
+        for _, particle in ipairs(particles) do
+            local angle = math.random() * math.pi * 2
+            local speed = math.random(300, 500)
+            local dx = math.cos(angle) * speed
+            local dy = math.sin(angle) * speed
+            
+            local startPos = particle.Position
+            local targetPos = UDim2.new(
+                startPos.X.Scale + (dx / MainFrame.AbsoluteSize.X),
+                startPos.X.Offset,
+                startPos.Y.Scale + (dy / MainFrame.AbsoluteSize.Y),
+                startPos.Y.Offset
+            )
+            
+            TweenService:Create(particle, TweenInfo.new(0.5), {
+                Position = targetPos,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 0, 0, 0)
+            }):Play()
+        end
+        
+        -- UI 페이드아웃
         TweenService:Create(MainFrame, TweenInfo.new(0.5), {
             BackgroundTransparency = 1,
             Size = UDim2.new(0, 0, 0, 0),
-            Position = UDim2.new(0.5, 0, 0, 10)
+            Position = UDim2.new(0.5, 0, 0.5, 0)
         }):Play()
         
+        -- 모든 토글 끄기
         for _, toggle in pairs(Window.Toggles) do
             if toggle.Value then
                 toggle.Value = false
+                callback(false)
             end
         end
         
+        -- 모든 작업 정리
         for _, task in pairs(Window.Tasks) do
             if typeof(task) == "RBXScriptConnection" then
                 task:Disconnect()
@@ -172,7 +329,7 @@ function Library:CreateWindow(title)
         wait(0.5)
         ScreenGui:Destroy()
     end)
-
+    
     return Window
 end
 
