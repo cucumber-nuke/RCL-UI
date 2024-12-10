@@ -17,24 +17,6 @@ Library.Settings = {
     AnimationDuration = 0.5
 }
 
-local function CreateParticles(position)
-    local particles = {}
-    for i = 1, 20 do
-        local particle = Instance.new("Frame")
-        particle.Size = UDim2.new(0, math.random(2, 5), 0, math.random(2, 5))
-        particle.BackgroundColor3 = Library.Settings.AccentColor
-        particle.Position = position
-        particle.BorderSizePixel = 0
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(1, 0)
-        corner.Parent = particle
-        
-        particles[i] = particle
-    end
-    return particles
-end
-
 function Library:CreateWindow(title)
     local Window = {}
     Window.Toggles = {}
@@ -48,15 +30,23 @@ function Library:CreateWindow(title)
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Library.Settings.MainColor
-    MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
-    MainFrame.Size = UDim2.new(0, 300, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -400, 0, 10) -- 상단에 위치
+    MainFrame.Size = UDim2.new(0, 800, 0, 60) -- 가로로 길게
     MainFrame.ClipsDescendants = true
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = MainFrame
     
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = MainFrame
     TitleBar.BackgroundColor3 = Library.Settings.BackgroundColor
     TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 6)
+    TitleCorner.Parent = TitleBar
     
     local TitleText = Instance.new("TextLabel")
     TitleText.Parent = TitleBar
@@ -68,7 +58,72 @@ function Library:CreateWindow(title)
     TitleText.TextColor3 = Library.Settings.TextColor
     TitleText.TextSize = 14
     TitleText.TextXAlignment = Enum.TextXAlignment.Left
+
+    local ButtonsHolder = Instance.new("Frame")
+    ButtonsHolder.Name = "ButtonsHolder"
+    ButtonsHolder.Parent = MainFrame
+    ButtonsHolder.BackgroundTransparency = 1
+    ButtonsHolder.Position = UDim2.new(0, 10, 0, 35)
+    ButtonsHolder.Size = UDim2.new(1, -20, 0, 20)
     
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Parent = ButtonsHolder
+    UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+    UIListLayout.Padding = UDim.new(0, 10)
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    function Window:CreateButton(text, callback)
+        local Button = Instance.new("TextButton")
+        Button.Parent = ButtonsHolder
+        Button.BackgroundColor3 = Library.Settings.ButtonColor
+        Button.Size = UDim2.new(0, 120, 0, 20)
+        Button.Font = Library.Settings.Font
+        Button.Text = text
+        Button.TextColor3 = Library.Settings.TextColor
+        Button.TextSize = Library.Settings.TextSize
+        Button.AutoButtonColor = false
+        
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 4)
+        ButtonCorner.Parent = Button
+        
+        Button.MouseEnter:Connect(function()
+            TweenService:Create(Button, TweenInfo.new(0.3), {
+                BackgroundColor3 = Library.Settings.ButtonHoverColor
+            }):Play()
+        end)
+        
+        Button.MouseLeave:Connect(function()
+            TweenService:Create(Button, TweenInfo.new(0.3), {
+                BackgroundColor3 = Library.Settings.ButtonColor
+            }):Play()
+        end)
+        
+        Button.MouseButton1Click:Connect(function()
+            callback()
+        end)
+        
+        return Button
+    end
+    
+    function Window:CreateToggle(text, callback)
+        local Button = Window:CreateButton(text, function()
+            Button.Value = not Button.Value
+            if Button.Value then
+                TweenService:Create(Button, TweenInfo.new(0.3), {
+                    BackgroundColor3 = Library.Settings.AccentColor
+                }):Play()
+            else
+                TweenService:Create(Button, TweenInfo.new(0.3), {
+                    BackgroundColor3 = Library.Settings.ButtonColor
+                }):Play()
+            end
+            callback(Button.Value)
+        end)
+        Button.Value = false
+        return Button
+    end
+
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Parent = TitleBar
     MinimizeButton.BackgroundTransparency = 1
@@ -89,64 +144,22 @@ function Library:CreateWindow(title)
     CloseButton.TextColor3 = Library.Settings.TextColor
     CloseButton.TextSize = 14
 
-    local ContentFrame = Instance.new("Frame")
-    ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = MainFrame
-    ContentFrame.BackgroundTransparency = 1
-    ContentFrame.Position = UDim2.new(0, 0, 0, 30)
-    ContentFrame.Size = UDim2.new(1, 0, 1, -30)
-    
-    local minimized = false
     MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        local targetSize = minimized and UDim2.new(0, 300, 0, 30) or UDim2.new(0, 300, 0, 400)
-        
-        TweenService:Create(MainFrame, 
-            TweenInfo.new(0.5, Enum.EasingStyle.Quart), 
-            {Size = targetSize}
-        ):Play()
+        local minimized = MainFrame.Size.Y.Offset <= 30
+        local targetSize = minimized and UDim2.new(0, 800, 0, 60) or UDim2.new(0, 800, 0, 30)
+        TweenService:Create(MainFrame, TweenInfo.new(0.5), {Size = targetSize}):Play()
     end)
     
     CloseButton.MouseButton1Click:Connect(function()
-        local particles = CreateParticles(UDim2.new(0.5, 0, 0.5, 0))
-        for _, particle in ipairs(particles) do
-            particle.Parent = MainFrame
-            
-            local angle = math.random() * math.pi * 2
-            local speed = math.random(300, 500)
-            local dx = math.cos(angle) * speed
-            local dy = math.sin(angle) * speed
-            
-            local startPos = particle.Position
-            local targetPos = UDim2.new(
-                startPos.X.Scale + (dx / MainFrame.AbsoluteSize.X), 
-                startPos.X.Offset,
-                startPos.Y.Scale + (dy / MainFrame.AbsoluteSize.Y), 
-                startPos.Y.Offset
-            )
-            
-            TweenService:Create(particle, 
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
-                {
-                    Position = targetPos,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 0, 0, 0)
-                }
-            ):Play()
-        end
-        
-        TweenService:Create(MainFrame, 
-            TweenInfo.new(0.5, Enum.EasingStyle.Quad), 
-            {
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 0, 0),
-                Position = UDim2.new(0.5, 0, 0.5, 0)
-            }
-        ):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.5), {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0, 10)
+        }):Play()
         
         for _, toggle in pairs(Window.Toggles) do
             if toggle.Value then
-                toggle:Set(false)
+                toggle.Value = false
             end
         end
         
