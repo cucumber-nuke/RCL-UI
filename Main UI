@@ -18,53 +18,8 @@ Library.Settings = {
     Font = Enum.Font.GothamBold,
     TextSize = 14,
     EasingStyle = Enum.EasingStyle.Quart,
-    AnimationDuration = 0.5,
-    
-    Themes = {
-        Default = {
-            MainColor = Color3.fromRGB(25, 25, 25),
-            AccentColor = Color3.fromRGB(0, 170, 255),
-        },
-        LightRed = {
-            MainColor = Color3.fromRGB(255, 200, 200),
-            AccentColor = Color3.fromRGB(255, 100, 100),
-        },
-        LightYellow = {
-            MainColor = Color3.fromRGB(255, 255, 200),
-            AccentColor = Color3.fromRGB(255, 255, 100),
-        },
-        LightGreen = {
-            MainColor = Color3.fromRGB(200, 255, 200),
-            AccentColor = Color3.fromRGB(100, 255, 100),
-        },
-        White = {
-            MainColor = Color3.fromRGB(255, 255, 255),
-            AccentColor = Color3.fromRGB(200, 200, 200),
-        },
-        Rainbow = {
-            IsRainbow = true
-        }
-    }
+    AnimationDuration = 0.5
 }
-
-local function CreateParticles(parent, position)
-    local particles = {}
-    for i = 1, 30 do
-        local particle = Instance.new("Frame")
-        particle.Size = UDim2.new(0, math.random(2, 5), 0, math.random(2, 5))
-        particle.BackgroundColor3 = Library.Settings.AccentColor
-        particle.Position = position
-        particle.BorderSizePixel = 0
-        particle.Parent = parent
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(1, 0)
-        corner.Parent = particle
-        
-        particles[i] = particle
-    end
-    return particles
-end
 
 function Library:CreateWindow(title)
     local Window = {}
@@ -77,8 +32,6 @@ function Library:CreateWindow(title)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
     ScreenGui.Parent = CoreGui
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    Window.ScreenGui = ScreenGui
     
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
@@ -87,7 +40,6 @@ function Library:CreateWindow(title)
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
     MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.ClipsDescendants = true
-    Window.MainFrame = MainFrame
     
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 6)
@@ -205,84 +157,50 @@ function Library:CreateWindow(title)
     MinimizeButton.MouseButton1Click:Connect(function()
         local minimized = MainFrame.Size.Y.Offset <= 30
         local originalSize = UDim2.new(0, 600, 0, 400)
-        local horizontalMinimized = UDim2.new(0, 150, 0, 400)
         local fullyMinimized = UDim2.new(0, 150, 0, 30)
         
         if minimized then
             TweenService:Create(MainFrame, 
-                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
-                {Size = horizontalMinimized}
-            ):Play()
-            wait(0.3)
-            
-            TweenService:Create(MainFrame, 
-                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
+                TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 
                 {Size = originalSize}
             ):Play()
             
-            wait(0.3)
+            wait(0.2)
+            
+            TweenService:Create(TabContainer, 
+                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
+                {BackgroundTransparency = 0}
+            ):Play()
+            TweenService:Create(ContentFrame, 
+                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
+                {BackgroundTransparency = 0}
+            ):Play()
+            
+            wait(0.1)
             TabContainer.Visible = true
             ContentFrame.Visible = true
-            TweenService:Create(TabContainer, 
-                TweenInfo.new(0.2), 
-                {BackgroundTransparency = 0}
-            ):Play()
-            TweenService:Create(ContentFrame, 
-                TweenInfo.new(0.2), 
-                {BackgroundTransparency = 0}
-            ):Play()
         else
             TweenService:Create(TabContainer, 
-                TweenInfo.new(0.2), 
+                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
                 {BackgroundTransparency = 1}
             ):Play()
             TweenService:Create(ContentFrame, 
-                TweenInfo.new(0.2), 
+                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
                 {BackgroundTransparency = 1}
             ):Play()
-            wait(0.2)
+            
+            wait(0.3)
             TabContainer.Visible = false
             ContentFrame.Visible = false
             
             TweenService:Create(MainFrame, 
-                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
-                {Size = horizontalMinimized}
-            ):Play()
-            wait(0.3)
-            
-            TweenService:Create(MainFrame, 
-                TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
+                TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), 
                 {Size = fullyMinimized}
             ):Play()
         end
     end)
     
     CloseButton.MouseButton1Click:Connect(function()
-        local particles = CreateParticles(MainFrame, UDim2.new(0.5, 0, 0.5, 0))
-        for _, particle in ipairs(particles) do
-            local angle = math.random() * math.pi * 2
-            local speed = math.random(300, 500)
-            local dx = math.cos(angle) * speed
-            local dy = math.sin(angle) * speed
-            
-            local startPos = particle.Position
-            local targetPos = UDim2.new(
-                startPos.X.Scale + (dx / MainFrame.AbsoluteSize.X),
-                startPos.X.Offset,
-                startPos.Y.Scale + (dy / MainFrame.AbsoluteSize.Y),
-                startPos.Y.Offset
-            )
-            
-            TweenService:Create(particle, 
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
-                {
-                    Position = targetPos,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 0, 0, 0)
-                }
-            ):Play()
-        end
-        
         TweenService:Create(MainFrame, 
             TweenInfo.new(0.5, Enum.EasingStyle.Quad), 
             {
@@ -291,18 +209,6 @@ function Library:CreateWindow(title)
                 Position = UDim2.new(0.5, 0, 0.5, 0)
             }
         ):Play()
-        
-        for _, toggle in pairs(Window.Toggles) do
-            if toggle.Value then
-                toggle.Value = false
-            end
-        end
-        
-        for _, task in pairs(Window.Tasks) do
-            if typeof(task) == "RBXScriptConnection" then
-                task:Disconnect()
-            end
-        end
         
         wait(0.5)
         ScreenGui:Destroy()
@@ -509,6 +415,10 @@ function Library:CreateWindow(title)
     function Window:CreateNotification(title, text, duration)
         if not Window.NotificationsEnabled then return end
         
+        if not Window.NotificationList then
+            Window.NotificationList = {}
+        end
+        
         duration = duration or 3
         local Notification = Instance.new("Frame")
         Notification.Parent = ScreenGui
@@ -583,75 +493,6 @@ function Library:CreateWindow(title)
             wait(0.5)
             Notification:Destroy()
         end)
-    end
-    
-    function Window:CreateUserInfo()
-        local UserInfoPanel = Instance.new("Frame")
-        UserInfoPanel.Name = "UserInfoPanel"
-        UserInfoPanel.Parent = MainFrame
-        UserInfoPanel.BackgroundColor3 = Library.Settings.BackgroundColor
-        UserInfoPanel.Position = UDim2.new(0, 10, 1, -80)
-        UserInfoPanel.Size = UDim2.new(0, 150, 0, 70)
-        UserInfoPanel.Visible = true
-        
-        local UserInfoCorner = Instance.new("UICorner")
-        UserInfoCorner.CornerRadius = UDim.new(0, 4)
-        UserInfoCorner.Parent = UserInfoPanel
-        
-        local Username = Instance.new("TextLabel")
-        Username.Parent = UserInfoPanel
-        Username.BackgroundTransparency = 1
-        Username.Position = UDim2.new(0, 10, 0, 5)
-        Username.Size = UDim2.new(1, -20, 0, 20)
-        Username.Font = Library.Settings.Font
-        Username.Text = "User: " .. Players.LocalPlayer.Name
-        Username.TextColor3 = Library.Settings.TextColor
-        Username.TextSize = 12
-        
-        local UserId = Instance.new("TextLabel")
-        UserId.Parent = UserInfoPanel
-        UserId.BackgroundTransparency = 1
-        UserId.Position = UDim2.new(0, 10, 0, 25)
-        UserId.Size = UDim2.new(1, -20, 0, 20)
-        UserId.Font = Library.Settings.Font
-        UserId.Text = "ID: " .. Players.LocalPlayer.UserId
-        UserId.TextColor3 = Library.Settings.TextColor
-        UserId.TextSize = 12
-        
-        local GameTime = Instance.new("TextLabel")
-        GameTime.Parent = UserInfoPanel
-        GameTime.BackgroundTransparency = 1
-        GameTime.Position = UDim2.new(0, 10, 0, 45)
-        GameTime.Size = UDim2.new(1, -20, 0, 20)
-        GameTime.Font = Library.Settings.Font
-        GameTime.Text = "Time: 00:00:00"
-        GameTime.TextColor3 = Library.Settings.TextColor
-        GameTime.TextSize = 12
-        
-        local startTime = tick()
-        RunService.RenderStepped:Connect(function()
-            local elapsed = tick() - startTime
-            local hours = math.floor(elapsed/3600)
-            local minutes = math.floor((elapsed%3600)/60)
-            local seconds = math.floor(elapsed%60)
-            GameTime.Text = string.format("Time: %02d:%02d:%02d", hours, minutes, seconds)
-        end)
-        
-        return UserInfoPanel
-    end
-    
-    function Window:ApplyTheme(theme)
-        if theme.IsRainbow then
-            local function updateRainbow()
-                local hue = tick() % 5 / 5
-                local color = Color3.fromHSV(hue, 1, 1)
-                MainFrame.BackgroundColor3 = color
-            end
-            
-            RunService.RenderStepped:Connect(updateRainbow)
-        else
-            MainFrame.BackgroundColor3 = theme.MainColor
-        end
     end
     
     return Window
