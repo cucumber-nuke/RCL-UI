@@ -3,6 +3,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
 
 Library.Settings = {
     MainColor = Color3.fromRGB(25, 25, 25),
@@ -17,7 +18,33 @@ Library.Settings = {
     Font = Enum.Font.GothamBold,
     TextSize = 14,
     EasingStyle = Enum.EasingStyle.Quart,
-    AnimationDuration = 0.5
+    AnimationDuration = 0.5,
+    
+    Themes = {
+        Default = {
+            MainColor = Color3.fromRGB(25, 25, 25),
+            AccentColor = Color3.fromRGB(0, 170, 255),
+        },
+        LightRed = {
+            MainColor = Color3.fromRGB(255, 200, 200),
+            AccentColor = Color3.fromRGB(255, 100, 100),
+        },
+        LightYellow = {
+            MainColor = Color3.fromRGB(255, 255, 200),
+            AccentColor = Color3.fromRGB(255, 255, 100),
+        },
+        LightGreen = {
+            MainColor = Color3.fromRGB(200, 255, 200),
+            AccentColor = Color3.fromRGB(100, 255, 100),
+        },
+        White = {
+            MainColor = Color3.fromRGB(255, 255, 255),
+            AccentColor = Color3.fromRGB(200, 200, 200),
+        },
+        Rainbow = {
+            IsRainbow = true
+        }
+    }
 }
 
 -- 파티클 효과 생성 함수
@@ -45,11 +72,13 @@ function Library:CreateWindow(title)
     Window.Tabs = {}
     Window.Toggles = {}
     Window.Tasks = {}
+    Window.NotificationsEnabled = true
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
     ScreenGui.Parent = CoreGui
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    Window.ScreenGui = ScreenGui
     
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
@@ -58,6 +87,7 @@ function Library:CreateWindow(title)
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
     MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.ClipsDescendants = true
+    Window.MainFrame = MainFrame
     
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 6)
@@ -398,7 +428,188 @@ function Library:CreateWindow(title)
             return Toggle
         end
         
+        -- 드롭다운 생성 함수
+        function Tab:CreateDropdown(text, options, callback)
+            local Dropdown = {}
+            Dropdown.Value = options[1]
+            
+            local DropdownButton = Instance.new("TextButton")
+            DropdownButton.Parent = TabPage
+            DropdownButton.BackgroundColor3 = Library.Settings.ButtonColor
+            DropdownButton.Size = UDim2.new(1, 0, 0, 30)
+            DropdownButton.Font = Library.Settings.Font
+            DropdownButton.Text = text .. ": " .. Dropdown.Value
+            DropdownButton.TextColor3 = Library.Settings.TextColor
+            DropdownButton.TextSize = Library.Settings.TextSize
+            
+            local DropdownCorner = Instance.new("UICorner")
+            DropdownCorner.CornerRadius = UDim.new(0, 4)
+            DropdownCorner.Parent = DropdownButton
+            
+            local OptionsList = Instance.new("Frame")
+            OptionsList.Parent = DropdownButton
+            OptionsList.BackgroundColor3 = Library.Settings.ButtonColor
+            OptionsList.Position = UDim2.new(0, 0, 1, 5)
+            OptionsList.Size = UDim2.new(1, 0, 0, #options * 25)
+            OptionsList.Visible = false
+            OptionsList.ZIndex = 10
+            
+            local OptionsListCorner = Instance.new("UICorner")
+            OptionsListCorner.CornerRadius = UDim.new(0, 4)
+            OptionsListCorner.Parent = OptionsList
+            
+            for i, option in ipairs(options) do
+                local OptionButton = Instance.new("TextButton")
+                OptionButton.Parent = OptionsList
+                OptionButton.BackgroundColor3 = Library.Settings.ButtonColor
+                OptionButton.Size = UDim2.new(1, 0, 0, 25)
+                OptionButton.Position = UDim2.new(0, 0, 0, (i-1) * 25)
+                OptionButton.Font = Library.Settings.Font
+                OptionButton.Text = option
+                OptionButton.TextColor3 = Library.Settings.TextColor
+                OptionButton.TextSize = Library.Settings.TextSize
+                OptionButton.ZIndex = 10
+                
+                OptionButton.MouseButton1Click:Connect(function()
+                    Dropdown.Value = option
+                    DropdownButton.Text = text .. ": " .. option
+                    OptionsList.Visible = false
+                    if callback then callback(option) end
+                end)
+            end
+            
+            DropdownButton.MouseButton1Click:Connect(function()
+                OptionsList.Visible = not OptionsList.Visible
+            end)
+            
+            return Dropdown
+        end
+        
         return Tab
+    end
+    
+    -- 알림 생성 함수
+    function Window:CreateNotification(title, text, duration)
+        if not Window.NotificationsEnabled then return end
+        
+        duration = duration or 3
+        local Notification = Instance.new("Frame")
+        Notification.Parent = ScreenGui
+        Notification.BackgroundColor3 = Library.Settings.MainColor
+        Notification.Position = UDim2.new(1, -250, 1, -70)
+        Notification.Size = UDim2.new(0, 230, 0, 60)
+        
+        local NotifCorner = Instance.new("UICorner")
+        NotifCorner.CornerRadius = UDim.new(0, 4)
+        NotifCorner.Parent = Notification
+        
+        local NotifTitle = Instance.new("TextLabel")
+        NotifTitle.Parent = Notification
+        NotifTitle.BackgroundTransparency = 1
+        NotifTitle.Position = UDim2.new(0, 10, 0, 5)
+        NotifTitle.Size = UDim2.new(1, -20, 0, 20)
+        NotifTitle.Font = Library.Settings.Font
+        NotifTitle.Text = title
+        NotifTitle.TextColor3 = Library.Settings.AccentColor
+        NotifTitle.TextSize = 14
+        
+        local NotifText = Instance.new("TextLabel")
+        NotifText.Parent = Notification
+        NotifText.BackgroundTransparency = 1
+        NotifText.Position = UDim2.new(0, 10, 0, 25)
+        NotifText.Size = UDim2.new(1, -20, 0, 30)
+        NotifText.Font = Library.Settings.Font
+        NotifText.Text = text
+        NotifText.TextColor3 = Library.Settings.TextColor
+        NotifText.TextSize = 12
+        
+        TweenService:Create(Notification, 
+            TweenInfo.new(0.5, Enum.EasingStyle.Quart), 
+            {Position = UDim2.new(1, -260, 1, -70)}
+        ):Play()
+        
+        wait(duration)
+        
+        TweenService:Create(Notification, 
+            TweenInfo.new(0.5, Enum.EasingStyle.Quart), 
+            {Position = UDim2.new(1, 0, 1, -70)}
+        ):Play()
+        
+        wait(0.5)
+        Notification:Destroy()
+    end
+    
+    -- User Info 패널 생성
+    function Window:CreateUserInfo()
+        local UserInfoPanel = Instance.new("Frame")
+        UserInfoPanel.Name = "UserInfoPanel"
+        UserInfoPanel.Parent = MainFrame
+        UserInfoPanel.BackgroundColor3 = Library.Settings.BackgroundColor
+        UserInfoPanel.Position = UDim2.new(0, 10, 1, -80)
+        UserInfoPanel.Size = UDim2.new(0, 150, 0, 70)
+        UserInfoPanel.Visible = true
+        
+        local UserInfoCorner = Instance.new("UICorner")
+        UserInfoCorner.CornerRadius = UDim.new(0, 4)
+        UserInfoCorner.Parent = UserInfoPanel
+        
+        local Username = Instance.new("TextLabel")
+        Username.Parent = UserInfoPanel
+        Username.BackgroundTransparency = 1
+        Username.Position = UDim2.new(0, 10, 0, 5)
+        Username.Size = UDim2.new(1, -20, 0, 20)
+        Username.Font = Library.Settings.Font
+        Username.Text = "User: " .. Players.LocalPlayer.Name
+        Username.TextColor3 = Library.Settings.TextColor
+        Username.TextSize = 12
+        
+        local UserId = Instance.new("TextLabel")
+        UserId.Parent = UserInfoPanel
+        UserId.BackgroundTransparency = 1
+        UserId.Position = UDim2.new(0, 10, 0, 25)
+        UserId.Size = UDim2.new(1, -20, 0, 20)
+        UserId.Font = Library.Settings.Font
+        UserId.Text = "ID: " .. Players.LocalPlayer.UserId
+        UserId.TextColor3 = Library.Settings.TextColor
+        UserId.TextSize = 12
+        
+        local GameTime = Instance.new("TextLabel")
+        GameTime.Parent = UserInfoPanel
+        GameTime.BackgroundTransparency = 1
+        GameTime.Position = UDim2.new(0, 10, 0, 45)
+        GameTime.Size = UDim2.new(1, -20, 0, 20)
+        GameTime.Font = Library.Settings.Font
+        GameTime.Text = "Time: 00:00:00"
+        GameTime.TextColor3 = Library.Settings.TextColor
+        GameTime.TextSize = 12
+        
+        local startTime = tick()
+        RunService.RenderStepped:Connect(function()
+            local elapsed = tick() - startTime
+            local hours = math.floor(elapsed/3600)
+            local minutes = math.floor((elapsed%3600)/60)
+            local seconds = math.floor(elapsed%60)
+            GameTime.Text = string.format("Time: %02d:%02d:%02d", hours, minutes, seconds)
+        end)
+        
+        return UserInfoPanel
+    end
+    
+    -- 테마 적용 함수
+    function Window:ApplyTheme(theme)
+        if theme.IsRainbow then
+            -- 무지개 색상 효과
+            local function updateRainbow()
+                local hue = tick() % 5 / 5
+                local color = Color3.fromHSV(hue, 1, 1)
+                MainFrame.BackgroundColor3 = color
+            end
+            
+            RunService.RenderStepped:Connect(updateRainbow)
+        else
+            MainFrame.BackgroundColor3 = theme.MainColor
+            -- 다른 UI 요소들의 색상도 업데이트
+        end
     end
     
     return Window
