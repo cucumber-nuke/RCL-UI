@@ -19,7 +19,7 @@ Library.Settings = {
     TextSize = 14,
     EasingStyle = Enum.EasingStyle.Quart,
     AnimationDuration = 0.5,
-    Transparency = 0.2,
+    Transparency = 0.2
 }
 
 function Library:CreateWindow(title)
