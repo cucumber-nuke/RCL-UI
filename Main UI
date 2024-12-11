@@ -15,7 +15,7 @@ Library.Settings = {
     TabColor = Color3.fromRGB(35, 35, 35),
     TabSelectedColor = Color3.fromRGB(45, 45, 45),
     GlowColor = Color3.fromRGB(0, 170, 255),
-    Font = Enum.Font.GothamBold,
+    Font = Enum.Font.Gotham,
     TextSize = 14,
     EasingStyle = Enum.EasingStyle.Quart,
     AnimationDuration = 0.5,
@@ -216,11 +216,6 @@ function Library:CreateWindow(title)
         TabButton.TextSize = Library.Settings.TextSize
         TabButton.AutoButtonColor = false
         
-        local TabButtonBorder = Instance.new("UIStroke")
-        TabButtonBorder.Parent = TabButton
-        TabButtonBorder.Color = Library.Settings.BorderColor
-        TabButtonBorder.Thickness = Library.Settings.BorderThickness
-        
         if imageId then
             local Icon = Instance.new("ImageLabel")
             Icon.Name = "Icon"
@@ -288,11 +283,6 @@ function Library:CreateWindow(title)
             Button.TextSize = Library.Settings.TextSize
             Button.AutoButtonColor = false
             
-            local ButtonBorder = Instance.new("UIStroke")
-            ButtonBorder.Parent = Button
-            ButtonBorder.Color = Library.Settings.BorderColor
-            ButtonBorder.Thickness = Library.Settings.BorderThickness
-            
             local ButtonCorner = Instance.new("UICorner")
             ButtonCorner.CornerRadius = UDim.new(0, 4)
             ButtonCorner.Parent = Button
@@ -323,11 +313,6 @@ function Library:CreateWindow(title)
             ToggleFrame.BackgroundColor3 = Library.Settings.ButtonColor
             ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
             
-            local ToggleBorder = Instance.new("UIStroke")
-            ToggleBorder.Parent = ToggleFrame
-            ToggleBorder.Color = Library.Settings.BorderColor
-            ToggleBorder.Thickness = Library.Settings.BorderThickness
-            
             local ToggleCorner = Instance.new("UICorner")
             ToggleCorner.CornerRadius = UDim.new(0, 4)
             ToggleCorner.Parent = ToggleFrame
@@ -351,11 +336,6 @@ function Library:CreateWindow(title)
             Switch.Text = ""
             Switch.AutoButtonColor = false
             
-            local SwitchBorder = Instance.new("UIStroke")
-            SwitchBorder.Parent = Switch
-            SwitchBorder.Color = Library.Settings.BorderColor
-            SwitchBorder.Thickness = Library.Settings.BorderThickness
-            
             local SwitchCorner = Instance.new("UICorner")
             SwitchCorner.CornerRadius = UDim.new(1, 0)
             SwitchCorner.Parent = Switch
@@ -365,11 +345,6 @@ function Library:CreateWindow(title)
             Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             Circle.Position = UDim2.new(0, 2, 0.5, -8)
             Circle.Size = UDim2.new(0, 16, 0, 16)
-            
-            local CircleBorder = Instance.new("UIStroke")
-            CircleBorder.Parent = Circle
-            CircleBorder.Color = Library.Settings.BorderColor
-            CircleBorder.Thickness = Library.Settings.BorderThickness
             
             local CircleCorner = Instance.new("UICorner")
             CircleCorner.CornerRadius = UDim.new(1, 0)
@@ -415,11 +390,6 @@ function Library:CreateWindow(title)
             DropdownButton.TextColor3 = Library.Settings.TextColor
             DropdownButton.TextSize = Library.Settings.TextSize
             
-            local DropdownBorder = Instance.new("UIStroke")
-            DropdownBorder.Parent = DropdownButton
-            DropdownBorder.Color = Library.Settings.BorderColor
-            DropdownBorder.Thickness = Library.Settings.BorderThickness
-            
             local DropdownCorner = Instance.new("UICorner")
             DropdownCorner.CornerRadius = UDim.new(0, 4)
             DropdownCorner.Parent = DropdownButton
@@ -438,11 +408,6 @@ function Library:CreateWindow(title)
             OptionsList.Position = UDim2.new(0, 0, 0, 0)
             OptionsList.ZIndex = 10
             
-            local OptionsListBorder = Instance.new("UIStroke")
-            OptionsListBorder.Parent = OptionsList
-            OptionsListBorder.Color = Library.Settings.BorderColor
-            OptionsListBorder.Thickness = Library.Settings.BorderThickness
-            
             local OptionsListCorner = Instance.new("UICorner")
             OptionsListCorner.CornerRadius = UDim.new(0, 4)
             OptionsListCorner.Parent = OptionsList
@@ -458,11 +423,6 @@ function Library:CreateWindow(title)
                 OptionButton.TextColor3 = Library.Settings.TextColor
                 OptionButton.TextSize = Library.Settings.TextSize
                 OptionButton.ZIndex = 10
-                
-                local OptionBorder = Instance.new("UIStroke")
-                OptionBorder.Parent = OptionButton
-                OptionBorder.Color = Library.Settings.BorderColor
-                OptionBorder.Thickness = Library.Settings.BorderThickness
                 
                 local OptionCorner = Instance.new("UICorner")
                 OptionCorner.CornerRadius = UDim.new(0, 4)
