@@ -7,19 +7,21 @@ local Players = game:GetService("Players")
 
 Library.Settings = {
     MainColor = Color3.fromRGB(25, 25, 25),
-    AccentColor = Color3.fromRGB(0, 170, 255),
+    AccentColor = Color3.fromRGB(255, 255, 255),
     BackgroundColor = Color3.fromRGB(30, 30, 30),
     TextColor = Color3.fromRGB(255, 255, 255),
     ButtonColor = Color3.fromRGB(40, 40, 40),
     ButtonHoverColor = Color3.fromRGB(50, 50, 50),
     TabColor = Color3.fromRGB(35, 35, 35),
     TabSelectedColor = Color3.fromRGB(45, 45, 45),
-    GlowColor = Color3.fromRGB(0, 170, 255),
+    GlowColor = Color3.fromRGB(255, 255, 255),
     Font = Enum.Font.GothamBold,
     TextSize = 14,
     EasingStyle = Enum.EasingStyle.Quart,
     AnimationDuration = 0.5,
-    Transparency = 0.2
+    Transparency = 0.2,
+    BorderColor = Color3.fromRGB(255, 255, 255),
+    BorderThickness = 1
 }
 
 function Library:CreateWindow(title)
@@ -38,10 +40,15 @@ function Library:CreateWindow(title)
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Library.Settings.MainColor
-    MainFrame.BackgroundTransparency = 0.1
+    MainFrame.BackgroundTransparency = Library.Settings.Transparency
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
     MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.ClipsDescendants = true
+    
+    local MainBorder = Instance.new("UIStroke")
+    MainBorder.Parent = MainFrame
+    MainBorder.Color = Library.Settings.BorderColor
+    MainBorder.Thickness = Library.Settings.BorderThickness
     
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 6)
@@ -51,8 +58,13 @@ function Library:CreateWindow(title)
     TitleBar.Name = "TitleBar"
     TitleBar.Parent = MainFrame
     TitleBar.BackgroundColor3 = Library.Settings.BackgroundColor
-    TitleBar.BackgroundTransparency = 0.1
+    TitleBar.BackgroundTransparency = Library.Settings.Transparency
     TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    
+    local TitleBorder = Instance.new("UIStroke")
+    TitleBorder.Parent = TitleBar
+    TitleBorder.Color = Library.Settings.BorderColor
+    TitleBorder.Thickness = Library.Settings.BorderThickness
     
     local TitleCorner = Instance.new("UICorner")
     TitleCorner.CornerRadius = UDim.new(0, 6)
@@ -93,9 +105,14 @@ function Library:CreateWindow(title)
     TabContainer.Name = "TabContainer"
     TabContainer.Parent = MainFrame
     TabContainer.BackgroundColor3 = Library.Settings.TabColor
-    TabContainer.BackgroundTransparency = 0.1
+    TabContainer.BackgroundTransparency = Library.Settings.Transparency
     TabContainer.Position = UDim2.new(0, 10, 0, 40)
     TabContainer.Size = UDim2.new(0, 150, 1, -50)
+    
+    local TabBorder = Instance.new("UIStroke")
+    TabBorder.Parent = TabContainer
+    TabBorder.Color = Library.Settings.BorderColor
+    TabBorder.Thickness = Library.Settings.BorderThickness
     
     local TabCorner = Instance.new("UICorner")
     TabCorner.CornerRadius = UDim.new(0, 6)
@@ -121,9 +138,14 @@ function Library:CreateWindow(title)
     ContentFrame.Name = "ContentFrame"
     ContentFrame.Parent = MainFrame
     ContentFrame.BackgroundColor3 = Library.Settings.BackgroundColor
-    ContentFrame.BackgroundTransparency = 0.1
+    ContentFrame.BackgroundTransparency = Library.Settings.Transparency
     ContentFrame.Position = UDim2.new(0, 170, 0, 40)
     ContentFrame.Size = UDim2.new(1, -180, 1, -50)
+    
+    local ContentBorder = Instance.new("UIStroke")
+    ContentBorder.Parent = ContentFrame
+    ContentBorder.Color = Library.Settings.BorderColor
+    ContentBorder.Thickness = Library.Settings.BorderThickness
     
     local ContentCorner = Instance.new("UICorner")
     ContentCorner.CornerRadius = UDim.new(0, 6)
@@ -136,12 +158,17 @@ function Library:CreateWindow(title)
         TabButton.Name = name.."Tab"
         TabButton.Parent = TabList
         TabButton.BackgroundColor3 = Library.Settings.TabColor
-        TabButton.BackgroundTransparency = 0.1
+        TabButton.BackgroundTransparency = Library.Settings.Transparency
         TabButton.Size = UDim2.new(1, 0, 0, 30)
         TabButton.Font = Library.Settings.Font
         TabButton.TextColor3 = Library.Settings.TextColor
         TabButton.TextSize = Library.Settings.TextSize
         TabButton.AutoButtonColor = false
+        
+        local TabButtonBorder = Instance.new("UIStroke")
+        TabButtonBorder.Parent = TabButton
+        TabButtonBorder.Color = Library.Settings.BorderColor
+        TabButtonBorder.Thickness = Library.Settings.BorderThickness
         
         if imageId then
             local Icon = Instance.new("ImageLabel")
@@ -151,7 +178,7 @@ function Library:CreateWindow(title)
             Icon.Position = UDim2.new(0, 5, 0.5, -10)
             Icon.Size = UDim2.new(0, 20, 0, 20)
             Icon.Image = (typeof(imageId) == "string" and imageId:find("rbxassetid://")) and imageId or "rbxassetid://" .. imageId
-            Icon.ImageTransparency = 0.1
+            Icon.ImageTransparency = Library.Settings.Transparency
             
             TabButton.Text = name
             TabButton.TextXAlignment = Enum.TextXAlignment.Right
@@ -204,13 +231,18 @@ function Library:CreateWindow(title)
             local Button = Instance.new("TextButton")
             Button.Parent = TabPage
             Button.BackgroundColor3 = Library.Settings.ButtonColor
-            Button.BackgroundTransparency = 0.1
+            Button.BackgroundTransparency = Library.Settings.Transparency
             Button.Size = UDim2.new(1, 0, 0, 30)
             Button.Font = Library.Settings.Font
             Button.Text = text
             Button.TextColor3 = Library.Settings.TextColor
             Button.TextSize = Library.Settings.TextSize
             Button.AutoButtonColor = false
+            
+            local ButtonBorder = Instance.new("UIStroke")
+            ButtonBorder.Parent = Button
+            ButtonBorder.Color = Library.Settings.BorderColor
+            ButtonBorder.Thickness = Library.Settings.BorderThickness
             
             local ButtonCorner = Instance.new("UICorner")
             ButtonCorner.CornerRadius = UDim.new(0, 4)
@@ -240,8 +272,13 @@ function Library:CreateWindow(title)
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Parent = TabPage
             ToggleFrame.BackgroundColor3 = Library.Settings.ButtonColor
-            ToggleFrame.BackgroundTransparency = 0.1
+            ToggleFrame.BackgroundTransparency = Library.Settings.Transparency
             ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
+            
+            local ToggleBorder = Instance.new("UIStroke")
+            ToggleBorder.Parent = ToggleFrame
+            ToggleBorder.Color = Library.Settings.BorderColor
+            ToggleBorder.Thickness = Library.Settings.BorderThickness
             
             local ToggleCorner = Instance.new("UICorner")
             ToggleCorner.CornerRadius = UDim.new(0, 4)
@@ -261,11 +298,16 @@ function Library:CreateWindow(title)
             local Switch = Instance.new("TextButton")
             Switch.Parent = ToggleFrame
             Switch.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-            Switch.BackgroundTransparency = 0.1
+            Switch.BackgroundTransparency = Library.Settings.Transparency
             Switch.Position = UDim2.new(1, -50, 0.5, -10)
             Switch.Size = UDim2.new(0, 40, 0, 20)
             Switch.Text = ""
             Switch.AutoButtonColor = false
+            
+            local SwitchBorder = Instance.new("UIStroke")
+            SwitchBorder.Parent = Switch
+            SwitchBorder.Color = Library.Settings.BorderColor
+            SwitchBorder.Thickness = Library.Settings.BorderThickness
             
             local SwitchCorner = Instance.new("UICorner")
             SwitchCorner.CornerRadius = UDim.new(1, 0)
@@ -274,9 +316,14 @@ function Library:CreateWindow(title)
             local Circle = Instance.new("Frame")
             Circle.Parent = Switch
             Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            Circle.BackgroundTransparency = 0.1
+            Circle.BackgroundTransparency = Library.Settings.Transparency
             Circle.Position = UDim2.new(0, 2, 0.5, -8)
             Circle.Size = UDim2.new(0, 16, 0, 16)
+            
+            local CircleBorder = Instance.new("UIStroke")
+            CircleBorder.Parent = Circle
+            CircleBorder.Color = Library.Settings.BorderColor
+            CircleBorder.Thickness = Library.Settings.BorderThickness
             
             local CircleCorner = Instance.new("UICorner")
             CircleCorner.CornerRadius = UDim.new(1, 0)
@@ -319,12 +366,17 @@ function Library:CreateWindow(title)
             local DropdownButton = Instance.new("TextButton")
             DropdownButton.Parent = TabPage
             DropdownButton.BackgroundColor3 = Library.Settings.ButtonColor
-            DropdownButton.BackgroundTransparency = 0.1
+            DropdownButton.BackgroundTransparency = Library.Settings.Transparency
             DropdownButton.Size = UDim2.new(1, 0, 0, 30)
             DropdownButton.Font = Library.Settings.Font
             DropdownButton.Text = text .. ": " .. Dropdown.Value
             DropdownButton.TextColor3 = Library.Settings.TextColor
             DropdownButton.TextSize = Library.Settings.TextSize
+            
+            local DropdownBorder = Instance.new("UIStroke")
+            DropdownBorder.Parent = DropdownButton
+            DropdownBorder.Color = Library.Settings.BorderColor
+            DropdownBorder.Thickness = Library.Settings.BorderThickness
             
             local DropdownCorner = Instance.new("UICorner")
             DropdownCorner.CornerRadius = UDim.new(0, 4)
@@ -340,10 +392,15 @@ function Library:CreateWindow(title)
             local OptionsList = Instance.new("Frame")
             OptionsList.Parent = DropdownContainer
             OptionsList.BackgroundColor3 = Library.Settings.ButtonColor
-            OptionsList.BackgroundTransparency = 0.1
+            OptionsList.BackgroundTransparency = Library.Settings.Transparency
             OptionsList.Size = UDim2.new(1, 0, 0, #options * 25)
             OptionsList.Position = UDim2.new(0, 0, 0, 0)
             OptionsList.ZIndex = 10
+            
+            local OptionsListBorder = Instance.new("UIStroke")
+            OptionsListBorder.Parent = OptionsList
+            OptionsListBorder.Color = Library.Settings.BorderColor
+            OptionsListBorder.Thickness = Library.Settings.BorderThickness
             
             local OptionsListCorner = Instance.new("UICorner")
             OptionsListCorner.CornerRadius = UDim.new(0, 4)
@@ -353,7 +410,7 @@ function Library:CreateWindow(title)
                 local OptionButton = Instance.new("TextButton")
                 OptionButton.Parent = OptionsList
                 OptionButton.BackgroundColor3 = Library.Settings.ButtonColor
-                OptionButton.BackgroundTransparency = 0.1
+                OptionButton.BackgroundTransparency = Library.Settings.Transparency
                 OptionButton.Size = UDim2.new(1, 0, 0, 25)
                 OptionButton.Position = UDim2.new(0, 0, 0, (i-1) * 25)
                 OptionButton.Font = Library.Settings.Font
@@ -361,6 +418,11 @@ function Library:CreateWindow(title)
                 OptionButton.TextColor3 = Library.Settings.TextColor
                 OptionButton.TextSize = Library.Settings.TextSize
                 OptionButton.ZIndex = 10
+                
+                local OptionBorder = Instance.new("UIStroke")
+                OptionBorder.Parent = OptionButton
+                OptionBorder.Color = Library.Settings.BorderColor
+                OptionBorder.Thickness = Library.Settings.BorderThickness
                 
                 local OptionCorner = Instance.new("UICorner")
                 OptionCorner.CornerRadius = UDim.new(0, 4)
@@ -413,10 +475,15 @@ function Library:CreateWindow(title)
         local Notification = Instance.new("Frame")
         Notification.Parent = ScreenGui
         Notification.BackgroundColor3 = Library.Settings.MainColor
-        Notification.BackgroundTransparency = 0.1
+        Notification.BackgroundTransparency = Library.Settings.Transparency
         Notification.Position = UDim2.new(1, -250, 1, -70)
         Notification.Size = UDim2.new(0, 230, 0, 60)
         Notification.ZIndex = 100
+        
+        local NotifBorder = Instance.new("UIStroke")
+        NotifBorder.Parent = Notification
+        NotifBorder.Color = Library.Settings.BorderColor
+        NotifBorder.Thickness = Library.Settings.BorderThickness
         
         local NotifCorner = Instance.new("UICorner")
         NotifCorner.CornerRadius = UDim.new(0, 4)
@@ -533,11 +600,11 @@ function Library:CreateWindow(title)
             
             TweenService:Create(TabContainer, 
                 TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
-                {BackgroundTransparency = 0.1}
+                {BackgroundTransparency = Library.Settings.Transparency}
             ):Play()
             TweenService:Create(ContentFrame, 
                 TweenInfo.new(0.3, Enum.EasingStyle.Quart), 
-                {BackgroundTransparency = 0.1}
+                {BackgroundTransparency = Library.Settings.Transparency}
             ):Play()
             
             wait(0.1)
