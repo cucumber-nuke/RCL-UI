@@ -13,7 +13,7 @@ Library.Settings = {
     ButtonColor = Color3.fromRGB(40, 40, 40),
     ButtonHoverColor = Color3.fromRGB(50, 50, 50),
     TabColor = Color3.fromRGB(35, 35, 35),
-    TabSelectedColor = Color3.fromRGB(45, 45, 45),
+    TabSelectedColor = Color3.fromRGB(0, 170, 255),
     Font = Enum.Font.Gotham,
     TextSize = 14,
     EasingStyle = Enum.EasingStyle.Cubic,
@@ -144,6 +144,35 @@ function Library:CreateWindow(title)
     ContentCorner.CornerRadius = UDim.new(0, 6)
     ContentCorner.Parent = ContentFrame
 
+    local function MakeDraggable(frame, handle)
+        local dragging, dragInput, dragStart, startPos
+        
+        handle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+            end
+        end)
+        
+        handle.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+    end
+
+    MakeDraggable(MainFrame, TitleBar)
+    MakeDraggable(TabContainer, TabContainer)
+    MakeDraggable(ContentFrame, ContentFrame)
+
     local function CreateRipple(Parent)
         local Ripple = Instance.new("Frame")
         Ripple.Parent = Parent
@@ -187,35 +216,6 @@ function Library:CreateWindow(title)
     
     CloseButton.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
-    end)
-    
-    local dragging, dragInput, dragStart, startPos
-    
-    TitleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-        end
-    end)
-    
-    TitleBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-    
-    RunService.RenderStepped:Connect(function()
-        if dragging and dragInput then
-            local delta = dragInput.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
     end)
     
     function Window:CreateTab(name, imageId)
@@ -263,6 +263,7 @@ function Library:CreateWindow(title)
         TabPage.Visible = false
         TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
         TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        TabPage.ClipsDescendants = true
         
         local TabPageLayout = Instance.new("UIListLayout")
         TabPageLayout.Parent = TabPage
