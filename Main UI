@@ -109,6 +109,8 @@ function Library:CreateWindow(title)
     TabList.Size = UDim2.new(1, -10, 1, -10)
     TabList.ScrollBarThickness = 2
     TabList.ScrollBarImageColor3 = Library.Settings.AccentColor
+    TabList.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
     
     local TabListLayout = Instance.new("UIListLayout")
     TabListLayout.Parent = TabList
@@ -172,6 +174,8 @@ function Library:CreateWindow(title)
         TabPage.ScrollBarThickness = 2
         TabPage.ScrollBarImageColor3 = Library.Settings.AccentColor
         TabPage.Visible = false
+        TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
+        TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
         
         local TabPageLayout = Instance.new("UIListLayout")
         TabPageLayout.Parent = TabPage
@@ -404,10 +408,6 @@ function Library:CreateWindow(title)
     
     function Window:CreateNotification(title, text, duration)
         if not Window.NotificationsEnabled then return end
-        
-        if not Window.NotificationList then
-            Window.NotificationList = {}
-        end
         
         duration = duration or 3
         local Notification = Instance.new("Frame")
