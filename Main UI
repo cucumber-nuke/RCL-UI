@@ -14,11 +14,10 @@ Library.Settings = {
     ButtonHoverColor = Color3.fromRGB(50, 50, 50),
     TabColor = Color3.fromRGB(35, 35, 35),
     TabSelectedColor = Color3.fromRGB(45, 45, 45),
-    GlowColor = Color3.fromRGB(0, 170, 255),
     Font = Enum.Font.Gotham,
     TextSize = 14,
-    EasingStyle = Enum.EasingStyle.Quart,
-    AnimationDuration = 0.5,
+    EasingStyle = Enum.EasingStyle.Cubic,
+    AnimationDuration = 0.3,
     Transparency = 0.2,
     BorderColor = Color3.fromRGB(255, 255, 255),
     BorderThickness = 0.8
@@ -29,8 +28,6 @@ function Library:CreateWindow(title)
     Window.Tabs = {}
     Window.Toggles = {}
     Window.Tasks = {}
-    Window.NotificationsEnabled = true
-    Window.NotificationList = {}
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
@@ -147,6 +144,24 @@ function Library:CreateWindow(title)
     ContentCorner.CornerRadius = UDim.new(0, 6)
     ContentCorner.Parent = ContentFrame
 
+    local function CreateRipple(Parent)
+        local Ripple = Instance.new("Frame")
+        Ripple.Parent = Parent
+        Ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Ripple.BackgroundTransparency = 0.8
+        Ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+        Ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+        Ripple.Size = UDim2.new(0, 0, 0, 0)
+        
+        local RippleCorner = Instance.new("UICorner")
+        RippleCorner.CornerRadius = UDim.new(1, 0)
+        RippleCorner.Parent = Ripple
+        
+        local TargetSize = UDim2.new(2, 0, 2, 0)
+        TweenService:Create(Ripple, TweenInfo.new(0.5), {Size = TargetSize, BackgroundTransparency = 1}):Play()
+        game.Debris:AddItem(Ripple, 0.5)
+    end
+
     MinimizeButton.MouseButton1Click:Connect(function()
         local minimized = MainFrame.Size.Y.Offset <= 30
         if minimized then
@@ -255,12 +270,31 @@ function Library:CreateWindow(title)
         TabPageLayout.Padding = UDim.new(0, 5)
 
         TabButton.MouseButton1Click:Connect(function()
+            CreateRipple(TabButton)
             for _, tab in pairs(Window.Tabs) do
-                tab.Button.BackgroundColor3 = Library.Settings.TabColor
-                tab.Page.Visible = false
+                TweenService:Create(tab.Button, TweenInfo.new(0.3), {
+                    BackgroundColor3 = Library.Settings.TabColor
+                }):Play()
+                if tab.Page ~= TabPage then
+                    TweenService:Create(tab.Page, TweenInfo.new(0.3), {
+                        Position = UDim2.new(1, 10, 0, 10),
+                        BackgroundTransparency = 1
+                    }):Play()
+                    wait(0.3)
+                    tab.Page.Visible = false
+                end
             end
-            TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
+            
+            TweenService:Create(TabButton, TweenInfo.new(0.3), {
+                BackgroundColor3 = Library.Settings.TabSelectedColor
+            }):Play()
+            
+            TabPage.Position = UDim2.new(-1, 10, 0, 10)
             TabPage.Visible = true
+            TweenService:Create(TabPage, TweenInfo.new(0.3), {
+                Position = UDim2.new(0, 10, 0, 10),
+                BackgroundTransparency = 0
+            }):Play()
         end)
         
         Tab.Button = TabButton
@@ -299,7 +333,10 @@ function Library:CreateWindow(title)
                 }):Play()
             end)
             
-            Button.MouseButton1Click:Connect(callback)
+            Button.MouseButton1Click:Connect(function()
+                CreateRipple(Button)
+                callback()
+            end)
             
             return Button
         end
@@ -351,11 +388,11 @@ function Library:CreateWindow(title)
             CircleCorner.Parent = Circle
             
             local function UpdateToggle()
-                TweenService:Create(Switch, TweenInfo.new(0.2), {
+                TweenService:Create(Switch, TweenInfo.new(0.3), {
                     BackgroundColor3 = Toggle.Value and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
                 }):Play()
                 
-                TweenService:Create(Circle, TweenInfo.new(0.2), {
+                TweenService:Create(Circle, TweenInfo.new(0.3), {
                     Position = Toggle.Value 
                         and UDim2.new(1, -18, 0.5, -8)
                         or UDim2.new(0, 2, 0.5, -8)
@@ -365,11 +402,13 @@ function Library:CreateWindow(title)
             end
             
             Switch.MouseButton1Click:Connect(function()
+                CreateRipple(Switch)
                 Toggle.Value = not Toggle.Value
                 UpdateToggle()
             end)
             
             ToggleFrame.MouseButton1Click:Connect(function()
+                CreateRipple(ToggleFrame)
                 Toggle.Value = not Toggle.Value
                 UpdateToggle()
             end)
@@ -441,6 +480,7 @@ function Library:CreateWindow(title)
                 end)
                 
                 OptionButton.MouseButton1Click:Connect(function()
+                    CreateRipple(OptionButton)
                     Dropdown.Value = option
                     DropdownButton.Text = text .. ": " .. option
                     
@@ -455,6 +495,7 @@ function Library:CreateWindow(title)
             local isOpen = false
             
             DropdownButton.MouseButton1Click:Connect(function()
+                CreateRipple(DropdownButton)
                 isOpen = not isOpen
                 
                 TweenService:Create(DropdownContainer, TweenInfo.new(0.3), {
