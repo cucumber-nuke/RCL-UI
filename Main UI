@@ -7,7 +7,7 @@ local Players = game:GetService("Players")
 
 Library.Settings = {
     MainColor = Color3.fromRGB(30, 30, 35),
-    AccentColor = Color3.fromRGB(100, 100, 255), 
+    AccentColor = Color3.fromRGB(100, 100, 255),
     BackgroundColor = Color3.fromRGB(25, 25, 30),
     TextColor = Color3.fromRGB(255, 255, 255),
     ButtonColor = Color3.fromRGB(35, 35, 40),
@@ -28,6 +28,7 @@ function Library:CreateWindow(title)
     local Window = {}
     Window.Tabs = {}
     Window.CurrentTab = nil
+    Window.Minimized = false
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
@@ -64,27 +65,47 @@ function Library:CreateWindow(title)
     TitleText.Parent = TitleBar
     TitleText.BackgroundTransparency = 1
     TitleText.Position = UDim2.new(0, 15, 0, 0)
-    TitleText.Size = UDim2.new(1, -50, 1, 0)
+    TitleText.Size = UDim2.new(1, -100, 1, 0)
     TitleText.Font = Library.Settings.Font
     TitleText.Text = title
     TitleText.TextColor3 = Library.Settings.TextColor
     TitleText.TextSize = 16
     TitleText.TextXAlignment = Enum.TextXAlignment.Left
 
-    local MinimizeButton = Instance.new("ImageButton")
+    local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Parent = TitleBar
     MinimizeButton.BackgroundTransparency = 1
-    MinimizeButton.Position = UDim2.new(1, -35, 0.5, -8)
-    MinimizeButton.Size = UDim2.new(0, 16, 0, 16)
-    MinimizeButton.Image = "rbxassetid://7072719338"
-    MinimizeButton.ImageColor3 = Library.Settings.TextColor
+    MinimizeButton.Position = UDim2.new(1, -70, 0, 0)
+    MinimizeButton.Size = UDim2.new(0, 35, 1, 0)
+    MinimizeButton.Font = Library.Settings.Font
+    MinimizeButton.Text = "-"
+    MinimizeButton.TextColor3 = Library.Settings.TextColor
+    MinimizeButton.TextSize = 25
+
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Parent = TitleBar
+    CloseButton.BackgroundTransparency = 1
+    CloseButton.Position = UDim2.new(1, -35, 0, 0)
+    CloseButton.Size = UDim2.new(0, 35, 1, 0)
+    CloseButton.Font = Library.Settings.Font
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Library.Settings.TextColor
+    CloseButton.TextSize = 16
+
+    local ContentHolder = Instance.new("Frame")
+    ContentHolder.Name = "ContentHolder"
+    ContentHolder.Parent = MainFrame
+    ContentHolder.BackgroundTransparency = 1
+    ContentHolder.Position = UDim2.new(0, 0, 0, 35)
+    ContentHolder.Size = UDim2.new(1, 0, 1, -35)
+    ContentHolder.ClipsDescendants = true
 
     local TabContainer = Instance.new("Frame")
     TabContainer.Name = "TabContainer"
-    TabContainer.Parent = MainFrame
+    TabContainer.Parent = ContentHolder
     TabContainer.BackgroundColor3 = Library.Settings.TabColor
-    TabContainer.Position = UDim2.new(0, 10, 0, 45)
-    TabContainer.Size = UDim2.new(0, 150, 1, -55)
+    TabContainer.Position = UDim2.new(0, 10, 0, 10)
+    TabContainer.Size = UDim2.new(0, 150, 1, -20)
 
     local TabBorder = Instance.new("UIStroke")
     TabBorder.Parent = TabContainer
@@ -113,10 +134,10 @@ function Library:CreateWindow(title)
 
     local ContentFrame = Instance.new("Frame")
     ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = MainFrame
+    ContentFrame.Parent = ContentHolder
     ContentFrame.BackgroundColor3 = Library.Settings.BackgroundColor
-    ContentFrame.Position = UDim2.new(0, 170, 0, 45)
-    ContentFrame.Size = UDim2.new(1, -180, 1, -55)
+    ContentFrame.Position = UDim2.new(0, 170, 0, 10)
+    ContentFrame.Size = UDim2.new(1, -180, 1, -20)
 
     local ContentBorder = Instance.new("UIStroke")
     ContentBorder.Parent = ContentFrame
@@ -127,18 +148,34 @@ function Library:CreateWindow(title)
     ContentCorner.CornerRadius = UDim.new(0, 8)
     ContentCorner.Parent = ContentFrame
 
-    local minimized = false
     MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        if minimized then
-            TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
-                Size = UDim2.new(0, 600, 0, 35)
+        Window.Minimized = not Window.Minimized
+        
+        if Window.Minimized then
+            TweenService:Create(ContentHolder, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
+                Size = UDim2.new(1, 0, 0, 0)
             }):Play()
         else
-            TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
-                Size = UDim2.new(0, 600, 0, 400)
+            TweenService:Create(ContentHolder, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
+                Size = UDim2.new(1, 0, 1, -35)
             }):Play()
         end
+    end)
+
+    CloseButton.MouseEnter:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+            TextColor3 = Color3.fromRGB(255, 50, 50)
+        }):Play()
+    end)
+
+    CloseButton.MouseLeave:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+            TextColor3 = Library.Settings.TextColor
+        }):Play()
+    end)
+
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
     end)
 
     local function MakeDraggable(frame, handle)
@@ -189,8 +226,9 @@ function Library:CreateWindow(title)
             Icon.Position = UDim2.new(0, 10, 0.5, -10)
             Icon.Size = UDim2.new(0, 20, 0, 20)
             Icon.Image = icon
-            TabButton.Text = "  "..name
-            TabButton.TextXAlignment = Enum.TextXAlignment.Left
+            
+            TabButton.Text = name
+            TabButton.TextXAlignment = Enum.TextXAlignment.Right
             TabButton.Position = UDim2.new(0, 35, 0, 0)
         else
             TabButton.Text = name
@@ -330,9 +368,11 @@ function Library:CreateWindow(title)
                 UpdateToggle()
             end)
 
-            ToggleFrame.MouseButton1Click:Connect(function()
-                Toggle.Value = not Toggle.Value
-                UpdateToggle()
+            ToggleFrame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    Toggle.Value = not Toggle.Value
+                    UpdateToggle()
+                end
             end)
 
             UpdateToggle()
