@@ -767,62 +767,6 @@ function Library:CreateWindow(title)
         return Tab
     end
 
-    local SettingsTab = Window:CreateTab("설정")
-    
-    SettingsTab:CreateSection("UI 설정")
-
-    local glowToggle = SettingsTab:CreateToggle("테두리 빛", Library.Settings.GlowEnabled, function(value)
-        Library.Settings.GlowEnabled = value
-        Glow.Visible = value
-    end)
-
-    local transparencySlider = SettingsTab:CreateSlider("UI 투명도", 0, 100, Library.Settings.DefaultTransparency * 100, function(value)
-        local transparency = value / 100
-        MainFrame.BackgroundTransparency = transparency
-        Library.Settings.DefaultTransparency = transparency
-    end)
-
-    local colorSchemeDropdown = SettingsTab:CreateDropdown("UI 색상", {"기본", "하양", "연두", "노랑", "핑크", "무지개"}, function(option)
-        local schemes = {
-            ["기본"] = "Default",
-            ["하양"] = "White",
-            ["연두"] = "Green",
-            ["노랑"] = "Yellow",
-            ["핑크"] = "Pink",
-            ["무지개"] = "Rainbow"
-        }
-        
-        Window.ColorScheme = schemes[option]
-        
-        if Window.ColorScheme == "Rainbow" then
-            if not Window.RainbowConnection then
-                Window.RainbowConnection = RunService.RenderStepped:Connect(function()
-                    local hue = tick() % 5 / 5
-                    local color = Color3.fromHSV(hue, 0.8, 1)
-                    MainFrame.BorderColor3 = color
-                    Glow.ImageColor3 = color
-                end)
-            end
-        else
-            if Window.RainbowConnection then
-                Window.RainbowConnection:Disconnect()
-                Window.RainbowConnection = nil
-            end
-            
-            local scheme = Library.Settings.ColorSchemes[Window.ColorScheme]
-            MainFrame.BackgroundColor3 = scheme.MainColor
-            MainFrame.BorderColor3 = scheme.AccentColor
-            Glow.ImageColor3 = scheme.AccentColor
-        end
-    end)
-
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == Library.Settings.Keybinds.ToggleUI then
-            Window.Hidden = not Window.Hidden
-            MainFrame.Visible = not Window.Hidden
-        end
-    end)
-
     return Window
 end
 
