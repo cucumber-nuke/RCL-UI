@@ -4,6 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 
 Library.Settings = {
     MainColor = Color3.fromRGB(30, 30, 35),
@@ -21,31 +22,109 @@ Library.Settings = {
     SliderColor = Color3.fromRGB(100, 100, 255),
     ToggleColor = Color3.fromRGB(100, 100, 255),
     DropdownColor = Color3.fromRGB(35, 35, 40),
-    SectionColor = Color3.fromRGB(30, 30, 35)
+    SectionColor = Color3.fromRGB(30, 30, 35),
+    DefaultTransparency = 0.2,
+    GlowEnabled = true,
+    ColorSchemes = {
+        Default = {
+            MainColor = Color3.fromRGB(30, 30, 35),
+            AccentColor = Color3.fromRGB(100, 100, 255)
+        },
+        White = {
+            MainColor = Color3.fromRGB(240, 240, 240),
+            AccentColor = Color3.fromRGB(200, 200, 200)
+        },
+        Green = {
+            MainColor = Color3.fromRGB(30, 35, 30),
+            AccentColor = Color3.fromRGB(100, 255, 100)
+        },
+        Yellow = {
+            MainColor = Color3.fromRGB(35, 35, 30),
+            AccentColor = Color3.fromRGB(255, 255, 100)
+        },
+        Pink = {
+            MainColor = Color3.fromRGB(35, 30, 35),
+            AccentColor = Color3.fromRGB(255, 100, 255)
+        }
+    },
+    Keybinds = {
+        ToggleUI = Enum.KeyCode.RightControl
+    }
 }
+
+function Library:SaveSettings()
+    local data = {
+        ColorScheme = self.CurrentColorScheme,
+        Transparency = self.CurrentTransparency,
+        GlowEnabled = self.Settings.GlowEnabled,
+        Position = {
+            X = self.MainFrame.Position.X.Scale,
+            Y = self.MainFrame.Position.Y.Scale,
+            OffsetX = self.MainFrame.Position.X.Offset,
+            OffsetY = self.MainFrame.Position.Y.Offset
+        }
+    }
+    
+    writefile("UILibrarySettings.json", HttpService:JSONEncode(data))
+end
+
+function Library:LoadSettings()
+    if isfile("UILibrarySettings.json") then
+        local data = HttpService:JSONDecode(readfile("UILibrarySettings.json"))
+        
+        self.CurrentColorScheme = data.ColorScheme
+        self.CurrentTransparency = data.Transparency
+        self.Settings.GlowEnabled = data.GlowEnabled
+        
+        if data.Position then
+            self.MainFrame.Position = UDim2.new(
+                data.Position.X, 
+                data.Position.OffsetX,
+                data.Position.Y,
+                data.Position.OffsetY
+            )
+        end
+    end
+end
 
 function Library:CreateWindow(title)
     local Window = {}
     Window.Tabs = {}
     Window.CurrentTab = nil
     Window.Minimized = false
-
+    Window.Hidden = false
+    Window.ColorScheme = "Default"
+    
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
     ScreenGui.Parent = CoreGui
+    Window.ScreenGui = ScreenGui
 
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
     MainFrame.BackgroundColor3 = Library.Settings.MainColor
+    MainFrame.BackgroundTransparency = Library.Settings.DefaultTransparency
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
     MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.ClipsDescendants = true
+    Window.MainFrame = MainFrame
 
     local MainBorder = Instance.new("UIStroke")
     MainBorder.Parent = MainFrame
     MainBorder.Color = Library.Settings.BorderColor
     MainBorder.Thickness = Library.Settings.BorderThickness
+
+    local Glow = Instance.new("ImageLabel")
+    Glow.Name = "Glow"
+    Glow.BackgroundTransparency = 1
+    Glow.Position = UDim2.new(0, -15, 0, -15)
+    Glow.Size = UDim2.new(1, 30, 1, 30)
+    Glow.ZIndex = 0
+    Glow.Image = "rbxassetid://4996891970"
+    Glow.ImageColor3 = Library.Settings.AccentColor
+    Glow.ImageTransparency = 0.5
+    Glow.Parent = MainFrame
 
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 8)
@@ -155,10 +234,18 @@ function Library:CreateWindow(title)
             TweenService:Create(ContentHolder, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
                 Size = UDim2.new(1, 0, 0, 0)
             }):Play()
+            TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
+                Size = UDim2.new(0, 600, 0, 35)
+            }):Play()
+            MainFrame.BackgroundTransparency = 0.5
         else
             TweenService:Create(ContentHolder, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
                 Size = UDim2.new(1, 0, 1, -35)
             }):Play()
+            TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
+                Size = UDim2.new(0, 600, 0, 400)
+            }):Play()
+            MainFrame.BackgroundTransparency = Library.Settings.DefaultTransparency
         end
     end)
 
@@ -569,8 +656,172 @@ function Library:CreateWindow(title)
             return Section
         end
 
+        function Tab:CreateColorPicker(text, default, callback)
+            local ColorPicker = {Value = default or Color3.fromRGB(255, 255, 255)}
+            
+            local ColorPickerFrame = Instance.new("Frame")
+            ColorPickerFrame.Parent = TabPage
+            ColorPickerFrame.BackgroundColor3 = Library.Settings.ButtonColor
+            ColorPickerFrame.Size = UDim2.new(1, 0, 0, 35)
+
+            local ColorPickerCorner = Instance.new("UICorner")
+            ColorPickerCorner.CornerRadius = UDim.new(0, 6)
+            ColorPickerCorner.Parent = ColorPickerFrame
+
+            local Label = Instance.new("TextLabel")
+            Label.Parent = ColorPickerFrame
+            Label.BackgroundTransparency = 1
+            Label.Position = UDim2.new(0, 15, 0, 0)
+            Label.Size = UDim2.new(1, -55, 1, 0)
+            Label.Font = Library.Settings.Font
+            Label.Text = text
+            Label.TextColor3 = Library.Settings.TextColor
+            Label.TextSize = Library.Settings.TextSize
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local ColorDisplay = Instance.new("Frame")
+            ColorDisplay.Parent = ColorPickerFrame
+            ColorDisplay.BackgroundColor3 = ColorPicker.Value
+            ColorDisplay.Position = UDim2.new(1, -45, 0.5, -10)
+            ColorDisplay.Size = UDim2.new(0, 35, 0, 20)
+
+            local ColorDisplayCorner = Instance.new("UICorner")
+            ColorDisplayCorner.CornerRadius = UDim.new(0, 4)
+            ColorDisplayCorner.Parent = ColorDisplay
+
+            ColorDisplay.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    -- 여기에 컬러피커 UI 구현
+                    callback(ColorPicker.Value)
+                end
+            end)
+
+            return ColorPicker
+        end
+
+        function Tab:CreateKeybind(text, default, callback)
+            local Keybind = {Value = default or Enum.KeyCode.Unknown}
+            
+            local KeybindFrame = Instance.new("Frame")
+            KeybindFrame.Parent = TabPage
+            KeybindFrame.BackgroundColor3 = Library.Settings.ButtonColor
+            KeybindFrame.Size = UDim2.new(1, 0, 0, 35)
+
+            local KeybindCorner = Instance.new("UICorner")
+            KeybindCorner.CornerRadius = UDim.new(0, 6)
+            KeybindCorner.Parent = KeybindFrame
+
+            local Label = Instance.new("TextLabel")
+            Label.Parent = KeybindFrame
+            Label.BackgroundTransparency = 1
+            Label.Position = UDim2.new(0, 15, 0, 0)
+            Label.Size = UDim2.new(1, -85, 1, 0)
+            Label.Font = Library.Settings.Font
+            Label.Text = text
+            Label.TextColor3 = Library.Settings.TextColor
+            Label.TextSize = Library.Settings.TextSize
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+
+            local KeyLabel = Instance.new("TextLabel")
+            KeyLabel.Parent = KeybindFrame
+            KeyLabel.BackgroundColor3 = Library.Settings.ButtonColor
+            KeyLabel.Position = UDim2.new(1, -75, 0.5, -12)
+            KeyLabel.Size = UDim2.new(0, 65, 0, 24)
+            KeyLabel.Font = Library.Settings.Font
+            KeyLabel.Text = Keybind.Value.Name
+            KeyLabel.TextColor3 = Library.Settings.TextColor
+            KeyLabel.TextSize = Library.Settings.TextSize
+
+            local KeyLabelCorner = Instance.new("UICorner")
+            KeyLabelCorner.CornerRadius = UDim.new(0, 4)
+            KeyLabelCorner.Parent = KeyLabel
+
+            local KeyButton = Instance.new("TextButton")
+            KeyButton.Parent = KeyLabel
+            KeyButton.BackgroundTransparency = 1
+            KeyButton.Size = UDim2.new(1, 0, 1, 0)
+            KeyButton.Font = Library.Settings.Font
+            KeyButton.Text = ""
+            KeyButton.TextColor3 = Library.Settings.TextColor
+            KeyButton.TextSize = Library.Settings.TextSize
+
+            local binding = false
+
+            KeyButton.MouseButton1Click:Connect(function()
+                binding = true
+                KeyLabel.Text = "..."
+            end)
+
+            UserInputService.InputBegan:Connect(function(input)
+                if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                    binding = false
+                    Keybind.Value = input.KeyCode
+                    KeyLabel.Text = input.KeyCode.Name
+                    callback(input.KeyCode)
+                end
+            end)
+
+            return Keybind
+        end
+
         return Tab
     end
+
+    local SettingsTab = Window:CreateTab("설정")
+    
+    SettingsTab:CreateSection("UI 설정")
+
+    local glowToggle = SettingsTab:CreateToggle("테두리 빛", Library.Settings.GlowEnabled, function(value)
+        Library.Settings.GlowEnabled = value
+        Glow.Visible = value
+    end)
+
+    local transparencySlider = SettingsTab:CreateSlider("UI 투명도", 0, 100, Library.Settings.DefaultTransparency * 100, function(value)
+        local transparency = value / 100
+        MainFrame.BackgroundTransparency = transparency
+        Library.Settings.DefaultTransparency = transparency
+    end)
+
+    local colorSchemeDropdown = SettingsTab:CreateDropdown("UI 색상", {"기본", "하양", "연두", "노랑", "핑크", "무지개"}, function(option)
+        local schemes = {
+            ["기본"] = "Default",
+            ["하양"] = "White",
+            ["연두"] = "Green",
+            ["노랑"] = "Yellow",
+            ["핑크"] = "Pink",
+            ["무지개"] = "Rainbow"
+        }
+        
+        Window.ColorScheme = schemes[option]
+        
+        if Window.ColorScheme == "Rainbow" then
+            if not Window.RainbowConnection then
+                Window.RainbowConnection = RunService.RenderStepped:Connect(function()
+                    local hue = tick() % 5 / 5
+                    local color = Color3.fromHSV(hue, 0.8, 1)
+                    MainFrame.BorderColor3 = color
+                    Glow.ImageColor3 = color
+                end)
+            end
+        else
+            if Window.RainbowConnection then
+                Window.RainbowConnection:Disconnect()
+                Window.RainbowConnection = nil
+            end
+            
+            local scheme = Library.Settings.ColorSchemes[Window.ColorScheme]
+            MainFrame.BackgroundColor3 = scheme.MainColor
+            MainFrame.BorderColor3 = scheme.AccentColor
+            Glow.ImageColor3 = scheme.AccentColor
+        end
+    end)
+
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Library.Settings.Keybinds.ToggleUI then
+            Window.Hidden = not Window.Hidden
+            MainFrame.Visible = not Window.Hidden
+        end
+    end)
 
     return Window
 end
