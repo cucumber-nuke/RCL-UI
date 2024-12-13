@@ -316,7 +316,7 @@ function Library:CreateWindow(title)
             
             TabButton.Text = name
             TabButton.TextXAlignment = Enum.TextXAlignment.Right
-            TabButton.Position = UDim2.new(0, 33, 0, 0)
+            TabButton.Position = UDim2.new(0, 30, 0, 0)
         else
             TabButton.Text = name
             TabButton.TextXAlignment = Enum.TextXAlignment.Center
