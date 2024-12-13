@@ -316,7 +316,7 @@ function Library:CreateWindow(title)
             
             TabButton.Text = name
             TabButton.TextXAlignment = Enum.TextXAlignment.Right
-            TabButton.Position = UDim2.new(0, 35, 35, 0)
+            TabButton.Position = UDim2.new(0, 35, 0, 0)
         else
             TabButton.Text = name
             TabButton.TextXAlignment = Enum.TextXAlignment.Center
@@ -406,7 +406,7 @@ function Library:CreateWindow(title)
             ToggleCorner.CornerRadius = UDim.new(0, 6)
             ToggleCorner.Parent = ToggleFrame
 
-            local ToggleButton = Instance.new("TextButton")
+            local ToggleButton = Instance.new("")
             ToggleButton.Parent = ToggleFrame
             ToggleButton.BackgroundColor3 = Toggle.Value and Library.Settings.ToggleColor or Library.Settings.ButtonColor
             ToggleButton.Position = UDim2.new(1, -55, 0.5, -12)
