@@ -292,76 +292,82 @@ function Library:CreateWindow(title)
 
     MakeDraggable(MainFrame, TitleBar)
 
-    function Window:CreateTab(name, icon)
-        local Tab = {}
+function Window:CreateTab(name, icon)
+    local Tab = {}
+    
+    local TabButton = Instance.new("TextButton")
+    TabButton.Name = name.."Tab"
+    TabButton.Parent = TabList
+    TabButton.BackgroundColor3 = Library.Settings.TabColor
+    TabButton.Size = UDim2.new(1, 0, 0, 35)
+    TabButton.Font = Library.Settings.Font
+    TabButton.TextColor3 = Library.Settings.TextColor
+    TabButton.TextSize = Library.Settings.TextSize
+    TabButton.AutoButtonColor = false
+
+    -- UIPadding 추가
+    local Padding = Instance.new("UIPadding")
+    Padding.Parent = TabButton
+    Padding.PaddingLeft = UDim.new(0, icon and 35 or 10) -- 아이콘 있으면 35, 없으면 10
+    Padding.PaddingRight = UDim.new(0, 10)
+
+    if icon then
+        local Icon = Instance.new("ImageLabel")
+        Icon.Name = "Icon"
+        Icon.Parent = TabButton
+        Icon.BackgroundTransparency = 1
+        Icon.Position = UDim2.new(0, 10, 0.5, -10) -- 아이콘 위치
+        Icon.Size = UDim2.new(0, 20, 0, 20)
+        Icon.Image = icon
         
-        local TabButton = Instance.new("TextButton")
-        TabButton.Name = name.."Tab"
-        TabButton.Parent = TabList
-        TabButton.BackgroundColor3 = Library.Settings.TabColor
-        TabButton.Size = UDim2.new(1, 0, 0, 35)
-        TabButton.Font = Library.Settings.Font
-        TabButton.TextColor3 = Library.Settings.TextColor
-        TabButton.TextSize = Library.Settings.TextSize
-        TabButton.AutoButtonColor = false
+        TabButton.Text = name
+        TabButton.TextXAlignment = Enum.TextXAlignment.Left -- 텍스트를 왼쪽 정렬
+    else
+        TabButton.Text = name
+        TabButton.TextXAlignment = Enum.TextXAlignment.Center
+    end
 
-        if icon then
-            local Icon = Instance.new("ImageLabel")
-            Icon.Name = "Icon"
-            Icon.Parent = TabButton
-            Icon.BackgroundTransparency = 1
-            Icon.Position = UDim2.new(0, 10, 0.5, -10)
-            Icon.Size = UDim2.new(0, 20, 0, 20)
-            Icon.Image = icon
-            
-            TabButton.Text = name
-            TabButton.TextXAlignment = Enum.TextXAlignment.Right
-            TabButton.Position = UDim2.new(0, 35, 0, 0)
-        else
-            TabButton.Text = name
-            TabButton.TextXAlignment = Enum.TextXAlignment.Center
+    local TabButtonCorner = Instance.new("UICorner")
+    TabButtonCorner.CornerRadius = UDim.new(0, 6)
+    TabButtonCorner.Parent = TabButton
+
+    local TabPage = Instance.new("ScrollingFrame")
+    TabPage.Name = name.."Page"
+    TabPage.Parent = ContentFrame
+    TabPage.BackgroundTransparency = 1
+    TabPage.Size = UDim2.new(1, -20, 1, -20)
+    TabPage.Position = UDim2.new(0, 10, 0, 10)
+    TabPage.ScrollBarThickness = 2
+    TabPage.ScrollBarImageColor3 = Library.Settings.AccentColor
+    TabPage.Visible = false
+    TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+    local TabPageLayout = Instance.new("UIListLayout")
+    TabPageLayout.Parent = TabPage
+    TabPageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabPageLayout.Padding = UDim.new(0, 8)
+
+    TabButton.MouseButton1Click:Connect(function()
+        if Window.CurrentTab then
+            Window.CurrentTab.Button.BackgroundColor3 = Library.Settings.TabColor
+            Window.CurrentTab.Page.Visible = false
         end
+        
+        Window.CurrentTab = Tab
+        TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
+        TabPage.Visible = true
+    end)
 
-        local TabButtonCorner = Instance.new("UICorner")
-        TabButtonCorner.CornerRadius = UDim.new(0, 6)
-        TabButtonCorner.Parent = TabButton
+    if not Window.CurrentTab then
+        Window.CurrentTab = Tab
+        TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
+        TabPage.Visible = true
+    end
 
-        local TabPage = Instance.new("ScrollingFrame")
-        TabPage.Name = name.."Page"
-        TabPage.Parent = ContentFrame
-        TabPage.BackgroundTransparency = 1
-        TabPage.Size = UDim2.new(1, -20, 1, -20)
-        TabPage.Position = UDim2.new(0, 10, 0, 10)
-        TabPage.ScrollBarThickness = 2
-        TabPage.ScrollBarImageColor3 = Library.Settings.AccentColor
-        TabPage.Visible = false
-        TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
-        TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
-        local TabPageLayout = Instance.new("UIListLayout")
-        TabPageLayout.Parent = TabPage
-        TabPageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        TabPageLayout.Padding = UDim.new(0, 8)
-
-        TabButton.MouseButton1Click:Connect(function()
-            if Window.CurrentTab then
-                Window.CurrentTab.Button.BackgroundColor3 = Library.Settings.TabColor
-                Window.CurrentTab.Page.Visible = false
-            end
-            
-            Window.CurrentTab = Tab
-            TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
-            TabPage.Visible = true
-        end)
-
-        if not Window.CurrentTab then
-            Window.CurrentTab = Tab
-            TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
-            TabPage.Visible = true
-        end
-
-        Tab.Button = TabButton
-        Tab.Page = TabPage
+    Tab.Button = TabButton
+    Tab.Page = TabPage
+end
 
         function Tab:CreateButton(text, callback)
             local Button = Instance.new("TextButton")
