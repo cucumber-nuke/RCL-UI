@@ -12,7 +12,7 @@ Library.Settings = {
     BackgroundColor = Color3.fromRGB(25, 25, 30),
     TextColor = Color3.fromRGB(255, 255, 255),
     ButtonColor = Color3.fromRGB(35, 35, 40),
-    ButtonHoverColor = Color3.fromRGB(40, 40, 45),
+    ButtonHoverColor = Color3.fromRGB(50, 50, 60),
     TabColor = Color3.fromRGB(35, 35, 40),
     TabSelectedColor = Color3.fromRGB(100, 100, 255),
     Font = Enum.Font.GothamBold,
@@ -25,6 +25,7 @@ Library.Settings = {
     SectionColor = Color3.fromRGB(30, 30, 35),
     DefaultTransparency = 0.2,
     GlowEnabled = true,
+    GlowColor = Color3.fromRGB(255, 255, 0),
     Keybinds = {
         ToggleUI = Enum.KeyCode.RightControl
     }
@@ -75,7 +76,7 @@ function Library:CreateWindow(title)
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
-    ScreenGui.Parent = CoreGui
+    ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
     Window.ScreenGui = ScreenGui
 
     local MainFrame = Instance.new("Frame")
@@ -96,12 +97,12 @@ function Library:CreateWindow(title)
     local Glow = Instance.new("ImageLabel")
     Glow.Name = "Glow"
     Glow.BackgroundTransparency = 1
-    Glow.Position = UDim2.new(0, -15, 0, -15)
-    Glow.Size = UDim2.new(1, 30, 1, 30)
+    Glow.Position = UDim2.new(0, -20, 0, -20)
+    Glow.Size = UDim2.new(1, 40, 1, 40)
     Glow.ZIndex = 0
     Glow.Image = "rbxassetid://4996891970"
-    Glow.ImageColor3 = Library.Settings.AccentColor
-    Glow.ImageTransparency = 0.5
+    Glow.ImageColor3 = Library.Settings.GlowColor
+    Glow.ImageTransparency = 0.3
     Glow.Parent = MainFrame
 
     local Corner = Instance.new("UICorner")
