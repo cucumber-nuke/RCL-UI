@@ -757,22 +757,32 @@ end
                 KeyLabel.Text = "..."
             end)
 
-            UserInputService.InputBegan:Connect(function(input)
-                if binding and input.UserInputType == Enum.UserInputType.Keyboard then
-                    binding = false
-                    Keybind.Value = input.KeyCode
-                    KeyLabel.Text = input.KeyCode.Name
+        local UserInputService = game:GetService("UserInputService")
+
+        local function CreateKeybindButton(KeyLabel, Library, callback)
+            local KeyButton = Instance.new("TextButton")
+            KeyButton.Parent = KeyLabel
+            KeyButton.BackgroundTransparency = 1
+            KeyButton.Size = UDim2.new(1, 0, 1, 0)
+            KeyButton.Font = Library.Settings.Font
+            KeyButton.Text = ""
+            KeyButton.TextColor3 = Library.Settings.TextColor
+            KeyButton.TextSize = Library.Settings.TextSize
+
+        local binding = false
+
+        KeyButton.MouseButton1Click:Connect(function()
+            binding = true
+            KeyLabel.Text = "Press any key..."
+        end)
+
+        UserInputService.InputBegan:Connect(function(input)
+            if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                binding = false
+                KeyLabel.Text = input.KeyCode.Name
+                if callback then
                     callback(input.KeyCode)
                 end
-            end)
-
-            return Keybind
-        end
-
-        return Tab
+            end
+        end)
     end
-
-    return Window
-end
-
-return Library
