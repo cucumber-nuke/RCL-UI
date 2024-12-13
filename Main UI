@@ -780,7 +780,7 @@ end
             if binding and input.UserInputType == Enum.UserInputType.Keyboard then
                 binding = false
                 KeyLabel.Text = input.KeyCode.Name
-                if callback then
+                if callback then)
                     callback(input.KeyCode)
                 end
             end
