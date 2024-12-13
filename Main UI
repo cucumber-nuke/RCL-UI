@@ -305,10 +305,9 @@ function Window:CreateTab(name, icon)
     TabButton.TextSize = Library.Settings.TextSize
     TabButton.AutoButtonColor = false
 
-    -- UIPadding 추가
     local Padding = Instance.new("UIPadding")
     Padding.Parent = TabButton
-    Padding.PaddingLeft = UDim.new(0, icon and 35 or 10) -- 아이콘 있으면 35, 없으면 10
+    Padding.PaddingLeft = UDim.new(0, icon and 35 or 10)
     Padding.PaddingRight = UDim.new(0, 10)
 
     if icon then
@@ -321,7 +320,7 @@ function Window:CreateTab(name, icon)
         Icon.Image = icon
         
         TabButton.Text = name
-        TabButton.TextXAlignment = Enum.TextXAlignment.Left -- 텍스트를 왼쪽 정렬
+        TabButton.TextXAlignment = Enum.TextXAlignment.Left
     else
         TabButton.Text = name
         TabButton.TextXAlignment = Enum.TextXAlignment.Center
