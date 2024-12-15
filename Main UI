@@ -1,10 +1,4 @@
 local Library = {}
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local CoreGui = game:GetService("CoreGui")
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
 
 Library.Settings = {
     MainColor = Color3.fromRGB(50, 50, 50),
@@ -97,7 +91,7 @@ function Library:CreateWindow(title)
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = title
-    ScreenGui.Parent = CoreGui
+    ScreenGui.Parent = game.CoreGui
     Window.ScreenGui = ScreenGui
 
     local MainFrame = Instance.new("Frame")
@@ -326,34 +320,32 @@ function Window:CreateTab(name, icon)
     TabPage.Position = UDim2.new(0, 10, 0, 10)
     TabPage.ScrollBarThickness = 2
     TabPage.ScrollBarImageColor3 = Library.Settings.AccentColor
-    TabPage.Visible = false
     TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
     local TabPageLayout = Instance.new("UIListLayout")
     TabPageLayout.Parent = TabPage
     TabPageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabPageLayout.Padding = UDim.new(0, 8)
+    TabPageLayout.Padding = UDim.new(0, 5)
 
     TabButton.MouseButton1Click:Connect(function()
-        if Window.CurrentTab then
-            Window.CurrentTab.Button.BackgroundColor3 = Library.Settings.TabColor
-            Window.CurrentTab.Page.Visible = false
+        for _, v in pairs(TabList:GetChildren()) do
+            if v:IsA("TextButton") then
+                v.BackgroundColor3 = Library.Settings.TabColor
+            end
         end
-        
-        Window.CurrentTab = Tab
         TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
+        for _, v in pairs(ContentFrame:GetChildren()) do
+            if v:IsA("Frame") then
+                v.Visible = false
+            end
+        end
         TabPage.Visible = true
     end)
 
-    if not Window.CurrentTab then
-        Window.CurrentTab = Tab
-        TabButton.BackgroundColor3 = Library.Settings.TabSelectedColor
-        TabPage.Visible = true
-    end
+    TabButton.MouseButton1Click:Fire()
 
-    Tab.Button = TabButton
-    Tab.Page = TabPage
+    return Tab
 end
 
 function Tab:CreateButton(text, callback)
@@ -365,103 +357,21 @@ function Tab:CreateButton(text, callback)
     Button.Text = text
     Button.TextColor3 = Library.Settings.TextColor
     Button.TextSize = Library.Settings.TextSize
-    Button.AutoButtonColor = false
 
     local ButtonCorner = Instance.new("UICorner")
     ButtonCorner.CornerRadius = UDim.new(0, 6)
     ButtonCorner.Parent = Button
 
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(Button, TweenInfo.new(0.2), {
-            BackgroundColor3 = Library.Settings.ButtonHoverColor
-        }):Play()
+    Button.MouseButton1Click:Connect(function()
+        callback()
     end)
 
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(Button, TweenInfo.new(0.2), {
-            BackgroundColor3 = Library.Settings.ButtonColor
-        }):Play()
-    end)
-
-    Button.MouseButton1Click:Connect(callback)
     return Button
 end
 
-function Tab:CreateToggle(text, default, callback)
-    local Toggle = {Value = default or false}
-    
-    local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Parent = TabPage
-    ToggleFrame.BackgroundColor3 = Library.Settings.ButtonColor
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
-
-    local ToggleCorner = Instance.new("UICorner")
-    ToggleCorner.CornerRadius = UDim.new(0, 6)
-    ToggleCorner.Parent = ToggleFrame
-
-    local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Parent = ToggleFrame
-    ToggleButton.BackgroundColor3 = Toggle.Value and Library.Settings.ToggleColor or Library.Settings.ButtonColor
-    ToggleButton.Position = UDim2.new(1, -55, 0.5, -12)
-    ToggleButton.Size = UDim2.new(0, 45, 0, 24)
-    ToggleButton.AutoButtonColor = false
-
-    local ToggleButtonCorner = Instance.new("UICorner")
-    ToggleButtonCorner.CornerRadius = UDim.new(1, 0)
-    ToggleButtonCorner.Parent = ToggleButton
-
-    local Circle = Instance.new("Frame")
-    Circle.Parent = ToggleButton
-    Circle.BackgroundColor3 = Library.Settings.TextColor
-    Circle.Position = Toggle.Value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-    Circle.Size = UDim2.new(0, 20, 0, 20)
-
-    local CircleCorner = Instance.new("UICorner")
-    CircleCorner.CornerRadius = UDim.new(1, 0)
-    CircleCorner.Parent = Circle
-
-    local Label = Instance.new("TextLabel")
-    Label.Parent = ToggleFrame
-    Label.BackgroundTransparency = 1
-    Label.Position = UDim2.new(0, 15, 0, 0)
-    Label.Size = UDim2.new(1, -75, 1, 0)
-    Label.Font = Library.Settings.Font
-    Label.Text = text
-    Label.TextColor3 = Library.Settings.TextColor
-    Label.TextSize = Library.Settings.TextSize
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-
-    local function UpdateToggle()
-        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {
-            BackgroundColor3 = Toggle.Value and Library.Settings.ToggleColor or Library.Settings.ButtonColor
-        }):Play()
-        
-        TweenService:Create(Circle, TweenInfo.new(0.2), {
-            Position = Toggle.Value and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-        }):Play()
-        
-        callback(Toggle.Value)
-    end
-
-    ToggleButton.MouseButton1Click:Connect(function()
-        Toggle.Value = not Toggle.Value
-        UpdateToggle()
-    end)
-
-    ToggleFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            Toggle.Value = not Toggle.Value
-            UpdateToggle()
-        end
-    end)
-
-    UpdateToggle()
-    return Toggle
-end
-
 function Tab:CreateSlider(text, min, max, default, callback)
-    local Slider = {Value = default or min}
-    
+    local Slider = {Value = default}
+
     local SliderFrame = Instance.new("Frame")
     SliderFrame.Parent = TabPage
     SliderFrame.BackgroundColor3 = Library.Settings.ButtonColor
@@ -689,7 +599,7 @@ function Tab:CreateColorPicker(text, default, callback)
     ColorPickerButton.Text = ""
 
     local ColorPickerUI = Instance.new("Frame")
-    ColorPickerUI.Parent = CoreGui
+    ColorPickerUI.Parent = game.CoreGui
     ColorPickerUI.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ColorPickerUI.Size = UDim2.new(0, 300, 0, 200)
     ColorPickerUI.Position = UDim2.new(0.5, -150, 0.5, -100)
@@ -701,14 +611,14 @@ function Tab:CreateColorPicker(text, default, callback)
     local ColorWheel = Instance.new("ImageLabel")
     ColorWheel.Parent = ColorPickerUI
     ColorWheel.Size = UDim2.new(1, 0, 1, -50)
-    ColorWheel.Image = "rbxassetid://12345678" -- Replace with actual color wheel asset ID
+    ColorWheel.Image = "rbxassetid://12345678" -- 실제 색상 휠 자산 ID로 교체
     ColorWheel.Position = UDim2.new(0, 0, 0, 0)
 
     local ConfirmButton = Instance.new("TextButton")
     ConfirmButton.Parent = ColorPickerUI
     ConfirmButton.Size = UDim2.new(1, 0, 0, 50)
     ConfirmButton.Position = UDim2.new(0, 0, 1, 0)
-    ConfirmButton.Text = "Confirm"
+    ConfirmButton.Text = "확인"
     ConfirmButton.BackgroundColor3 = Library.Settings.ButtonColor
     ConfirmButton.TextColor3 = Library.Settings.TextColor
 
@@ -775,7 +685,7 @@ function Tab:CreateKeybind(text, default, callback)
 
     KeyButton.MouseButton1Click:Connect(function()
         binding = true
-        KeyLabel.Text = "Press any key..."
+        KeyLabel.Text = "키를 눌러주세요..."
     end)
 
     UserInputService.InputBegan:Connect(function(input)
