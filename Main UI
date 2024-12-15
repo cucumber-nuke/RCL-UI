@@ -1,9 +1,9 @@
-local UI = {}
+local Library = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
-UI.Settings = {
+Library.Settings = {
     MainColor = Color3.fromRGB(40, 40, 40),
     AccentColor = Color3.fromRGB(255, 100, 100),
     TextColor = Color3.fromRGB(255, 255, 255),
@@ -11,9 +11,11 @@ UI.Settings = {
     ButtonHoverColor = Color3.fromRGB(70, 70, 70),
     Font = Enum.Font.Gotham,
     TextSize = 14,
+    BorderColor = Color3.fromRGB(80, 80, 80),
+    BorderThickness = 2,
 }
 
-function UI:CreateWindow(title)
+function Library:CreateWindow(title)
     local Window = Instance.new("ScreenGui")
     Window.Parent = CoreGui
 
@@ -21,7 +23,14 @@ function UI:CreateWindow(title)
     MainFrame.Size = UDim2.new(0, 400, 0, 300)
     MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
     MainFrame.BackgroundColor3 = self.Settings.MainColor
+    MainFrame.BorderSizePixel = 0
     MainFrame.Parent = Window
+
+    local MainBorder = Instance.new("UIStroke")
+    MainBorder.Parent = MainFrame
+    MainBorder.Color = self.Settings.BorderColor
+    MainBorder.Thickness = self.Settings.BorderThickness
+    MainBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     local TitleBar = Instance.new("Frame")
     TitleBar.Size = UDim2.new(1, 0, 0, 30)
@@ -37,178 +46,173 @@ function UI:CreateWindow(title)
     TitleLabel.TextSize = self.Settings.TextSize
     TitleLabel.Parent = TitleBar
 
+    local MinimizeButton = Instance.new("TextButton")
+    MinimizeButton.Size = UDim2.new(0, 35, 1, 0)
+    MinimizeButton.Position = UDim2.new(1, -70, 0, 0)
+    MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+    MinimizeButton.Text = "-"
+    MinimizeButton.Parent = TitleBar
+
     local CloseButton = Instance.new("TextButton")
-    CloseButton.Size = UDim2.new(0, 30, 1, 0)
-    CloseButton.Position = UDim2.new(1, -30, 0, 0)
+    CloseButton.Size = UDim2.new(0, 35, 1, 0)
+    CloseButton.Position = UDim2.new(1, -35, 0, 0)
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     CloseButton.Text = "X"
     CloseButton.Parent = TitleBar
 
-    CloseButton.MouseButton1Click:Connect(function()
-        Window:Destroy()
-    end)
+    local ContentHolder = Instance.new("Frame")
+    ContentHolder.Name = "ContentHolder"
+    ContentHolder.Parent = MainFrame
+    ContentHolder.BackgroundTransparency = 1
+    ContentHolder.Position = UDim2.new(0, 0, 0, 30)
+    ContentHolder.Size = UDim2.new(1, 0, 1, -30)
+    ContentHolder.ClipsDescendants = true
 
-    return MainFrame
-end
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Name = "TabContainer"
+    TabContainer.Parent = ContentHolder
+    TabContainer.BackgroundColor3 = self.Settings.MainColor
+    TabContainer.Position = UDim2.new(0, 10, 0, 10)
+    TabContainer.Size = UDim2.new(0, 150, 1, -20)
 
-function UI:CreateButton(parent, text, callback)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(1, 0, 0, 40)
-    Button.BackgroundColor3 = self.Settings.ButtonColor
-    Button.Text = text
-    Button.TextColor3 = self.Settings.TextColor
-    Button.Font = self.Settings.Font
-    Button.TextSize = self.Settings.TextSize
-    Button.Parent = parent
+    local TabList = Instance.new("ScrollingFrame")
+    TabList.Name = "TabList"
+    TabList.Parent = TabContainer
+    TabList.BackgroundTransparency = 1
+    TabList.Position = UDim2.new(0, 5, 0, 5)
+    TabList.Size = UDim2.new(1, -10, 1, -10)
+    TabList.ScrollBarThickness = 2
+    TabList.ScrollBarImageColor3 = self.Settings.AccentColor
+    TabList.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = self.Settings.ButtonHoverColor}):Play()
-    end)
+    local TabListLayout = Instance.new("UIListLayout")
+    TabListLayout.Parent = TabList
+    TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabListLayout.Padding = UDim.new(0, 5)
 
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = self.Settings.ButtonColor}):Play()
-    end)
+    local Tabs = {}
 
-    Button.MouseButton1Click:Connect(callback)
+    function Library:CreateTab(name)
+        if Tabs[name] then
+            warn("Tab with this name already exists!")
+            return
+        end
 
-    return Button
-end
+        local TabButton = Instance.new("TextButton")
+        TabButton.Name = name.."Tab"
+        TabButton.Parent = TabList
+        TabButton.BackgroundColor3 = self.Settings.ButtonColor
+        TabButton.Size = UDim2.new(1, 0, 0, 35)
+        TabButton.Font = self.Settings.Font
+        TabButton.TextColor3 = self.Settings.TextColor
+        TabButton.TextSize = self.Settings.TextSize
+        TabButton.AutoButtonColor = false
 
-function UI:CreateToggle(parent, text, default, callback)
-    local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
-    ToggleFrame.BackgroundColor3 = self.Settings.MainColor
-    ToggleFrame.Parent = parent
+        local TabPage = Instance.new("Frame")
+        TabPage.Name = name.."Page"
+        TabPage.Parent = ContentHolder
+        TabPage.BackgroundColor3 = self.Settings.MainColor
+        TabPage.Size = UDim2.new(1, -20, 1, -20)
+        TabPage.Position = UDim2.new(0, 10, 0, 10)
+        TabPage.Visible = false
 
-    local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Size = UDim2.new(0, 40, 1, 0)
-    ToggleButton.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-    ToggleButton.Parent = ToggleFrame
-
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -50, 1, 0)
-    Label.Position = UDim2.new(0, 50, 0, 0)
-    Label.BackgroundTransparency = 1
-    Label.Text = text
-    Label.TextColor3 = self.Settings.TextColor
-    Label.Font = self.Settings.Font
-    Label.TextSize = self.Settings.TextSize
-    Label.Parent = ToggleFrame
-
-    ToggleButton.MouseButton1Click:Connect(function()
-        default = not default
-        ToggleButton.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-        callback(default)
-    end)
-
-    return ToggleFrame
-end
-
-function UI:CreateSlider(parent, text, min, max, default, callback)
-    local SliderFrame = Instance.new("Frame")
-    SliderFrame.Size = UDim2.new(1, 0, 0, 50)
-    SliderFrame.BackgroundColor3 = self.Settings.MainColor
-    SliderFrame.Parent = parent
-
-    local SliderLabel = Instance.new("TextLabel")
-    SliderLabel.Size = UDim2.new(1, 0, 0, 20)
-    SliderLabel.BackgroundTransparency = 1
-    SliderLabel.Text = text
-    SliderLabel.TextColor3 = self.Settings.TextColor
-    SliderLabel.Font = self.Settings.Font
-    SliderLabel.TextSize = self.Settings.TextSize
-    SliderLabel.Parent = SliderFrame
-
-    local SliderBar = Instance.new("Frame")
-    SliderBar.Size = UDim2.new(1, 0, 0, 5)
-    SliderBar.Position = UDim2.new(0, 0, 0, 25)
-    SliderBar.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-    SliderBar.Parent = SliderFrame
-
-    local SliderButton = Instance.new("TextButton")
-    SliderButton.Size = UDim2.new(0, 10, 1, 0)
-    SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
-    SliderButton.Parent = SliderBar
-
-    local function updateSlider(value)
-        SliderButton.Position = UDim2.new((value - min) / (max - min), -5, 0, 0)
-        callback(value)
-    end
-
-    SliderButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local dragging = true
-            while dragging do
-                local mousePos = UserInputService:GetMouseLocation().X - SliderBar.AbsolutePosition.X
-                local value = math.clamp(min + (mousePos / SliderBar.AbsoluteSize.X) * (max - min), min, max)
-                updateSlider(value)
-                wait()
+        TabButton.MouseButton1Click:Connect(function()
+            for _, tab in pairs(Tabs) do
+                tab.Page.Visible = false
+                tab.Button.BackgroundColor3 = self.Settings.ButtonColor
             end
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    updateSlider(default)
-
-    return SliderFrame
-end
-
-function UI:CreateDropdown(parent, text, options, callback)
-    local DropdownFrame = Instance.new("Frame")
-    DropdownFrame.Size = UDim2.new(1, 0, 0, 40)
-    DropdownFrame.BackgroundColor3 = self.Settings.MainColor
-    DropdownFrame.Parent = parent
-
-    local DropdownLabel = Instance.new("TextLabel")
-    DropdownLabel.Size = UDim2.new(1, -50, 1, 0)
-    DropdownLabel.BackgroundTransparency = 1
-    DropdownLabel.Text = text
-    DropdownLabel.TextColor3 = self.Settings.TextColor
-    DropdownLabel.Font = self.Settings.Font
-    DropdownLabel.TextSize = self.Settings.TextSize
-    DropdownLabel.Parent = DropdownFrame
-
-    local DropdownButton = Instance.new("TextButton")
-    DropdownButton.Size = UDim2.new(0, 40, 1, 0)
-    DropdownButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    DropdownButton.Position = UDim2.new(1, -40, 0, 0)
-    DropdownButton.Text = "▼"
-    DropdownButton.Parent = DropdownFrame
-
-    local OptionsFrame = Instance.new("Frame")
-    OptionsFrame.Size = UDim2.new(1, 0, 0, #options * 25)
-    OptionsFrame.Position = UDim2.new(0, 0, 1, 0)
-    OptionsFrame.BackgroundColor3 = self.Settings.MainColor
-    OptionsFrame.Visible = false
-    OptionsFrame.Parent = DropdownFrame
-
-    for i, option in ipairs(options) do
-        local OptionButton = Instance.new("TextButton")
-        OptionButton.Size = UDim2.new(1, 0, 0, 25)
-        OptionButton.BackgroundColor3 = self.Settings.ButtonColor
-        OptionButton.Text = option
-        OptionButton.TextColor3 = self.Settings.TextColor
-        OptionButton.Font = self.Settings.Font
-        OptionButton.TextSize = self.Settings.TextSize
-        OptionButton.Parent = OptionsFrame
-
-        OptionButton.MouseButton1Click:Connect(function()
-            DropdownLabel.Text = option
-            callback(option)
-            OptionsFrame.Visible = false
+            TabPage.Visible = true
+            TabButton.BackgroundColor3 = self.Settings.AccentColor
         end)
+
+        Tabs[name] = {Button = TabButton, Page = TabPage}
     end
 
-    DropdownButton.MouseButton1Click:Connect(function()
-        OptionsFrame.Visible = not OptionsFrame.Visible
-    end)
+    function Library:CreateToggle(parent, text, default, callback)
+        local ToggleFrame = Instance.new("Frame")
+        ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
+        ToggleFrame.BackgroundColor3 = self.Settings.MainColor
+        ToggleFrame.Parent = parent
 
-    return DropdownFrame
+        local ToggleButton = Instance.new("TextButton")
+        ToggleButton.Size = UDim2.new(0, 40, 1, 0)
+        ToggleButton.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        ToggleButton.Parent = ToggleFrame
+
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, -50, 1, 0)
+        Label.Position = UDim2.new(0, 50, 0, 0)
+        Label.BackgroundTransparency = 1
+        Label.Text = text
+        Label.TextColor3 = self.Settings.TextColor
+        Label.Font = self.Settings.Font
+        Label.TextSize = self.Settings.TextSize
+        Label.Parent = ToggleFrame
+
+        ToggleButton.MouseButton1Click:Connect(function()
+            default = not default
+            ToggleButton.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+            callback(default)
+        end)
+
+        return ToggleFrame
+    end
+
+    function Library:CreateDropdown(parent, text, options, callback)
+        local DropdownFrame = Instance.new("Frame")
+        DropdownFrame.Size = UDim2.new(1, 0, 0, 40)
+        DropdownFrame.BackgroundColor3 = self.Settings.MainColor
+        DropdownFrame.Parent = parent
+
+        local DropdownLabel = Instance.new("TextLabel")
+        DropdownLabel.Size = UDim2.new(1, -50, 1, 0)
+        DropdownLabel.BackgroundTransparency = 1
+        DropdownLabel.Text = text
+        DropdownLabel.TextColor3 = self.Settings.TextColor
+        DropdownLabel.Font = self.Settings.Font
+        DropdownLabel.TextSize = self.Settings.TextSize
+        DropdownLabel.Parent = DropdownFrame
+
+        local DropdownButton = Instance.new("TextButton")
+        DropdownButton.Size = UDim2.new(0, 40, 1, 0)
+        DropdownButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        DropdownButton.Position = UDim2.new(1, -40, 0, 0)
+        DropdownButton.Text = "▼"
+        DropdownButton.Parent = DropdownFrame
+
+        local OptionsFrame = Instance.new("Frame")
+        OptionsFrame.Size = UDim2.new(1, 0, 0, #options * 25)
+        OptionsFrame.Position = UDim2.new(0, 0, 1, 0)
+        OptionsFrame.BackgroundColor3 = self.Settings.MainColor
+        OptionsFrame.Visible = false
+        OptionsFrame.Parent = DropdownFrame
+
+        for i, option in ipairs(options) do
+            local OptionButton = Instance.new("TextButton")
+            OptionButton.Size = UDim2.new(1, 0, 0, 25)
+            OptionButton.BackgroundColor3 = self.Settings.ButtonColor
+            OptionButton.Text = option
+            OptionButton.TextColor3 = self.Settings.TextColor
+            OptionButton.Font = self.Settings.Font
+            OptionButton.TextSize = self.Settings.TextSize
+            OptionButton.Parent = OptionsFrame
+
+            OptionButton.MouseButton1Click:Connect(function()
+                DropdownLabel.Text = option
+                callback(option)
+                OptionsFrame.Visible = false
+            end)
+        end
+
+        DropdownButton.MouseButton1Click:Connect(function()
+            OptionsFrame.Visible = not OptionsFrame.Visible
+        end)
+
+        return DropdownFrame
+    end
+
+    return Window
 end
 
-return UI
+return Library
